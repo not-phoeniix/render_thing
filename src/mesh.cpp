@@ -48,4 +48,12 @@ namespace RenderThing {
             index_buffer->CopyFromBuffer(staging_buffer, ctx);
         }
     }
+
+    Mesh::~Mesh() {
+    }
+
+    VkBuffer Mesh::get_vertex_buffer() const { return vertex_buffer->get_buffer(); }
+    VkBuffer Mesh::get_index_buffer() const { return index_buffer->get_buffer(); }
+    uint32_t Mesh::get_num_vertices() const { return num_vertices; }
+    uint32_t Mesh::get_num_indices() const { return num_indices; }
 }

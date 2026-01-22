@@ -21,6 +21,6 @@ namespace RenderThing {
         Sampler(const SamplerCreateInfo& create_info, const GraphicsContext& ctx);
         ~Sampler();
 
-        VkSampler get_sampler() const { return sampler; }
+        VkSampler get_sampler() const;
     };
 }

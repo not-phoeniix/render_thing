@@ -6,6 +6,7 @@
 namespace RenderThing {
     Buffer::Buffer(const BufferCreateInfo& create_info, const GraphicsContext& ctx)
       : device(ctx.device),
+        mapped(nullptr),
         size(create_info.size),
         buffer_usage(create_info.usage),
         memory_properties(create_info.properties) {

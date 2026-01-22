@@ -16,7 +16,7 @@ namespace RenderThing {
     class GraphicsManager {
        private:
         VkInstance instance;
-        VkPhysicalDevice physical_device = nullptr;
+        VkPhysicalDevice physical_device;
         VkDevice device;
         VkSurfaceKHR surface;
         GLFWwindow* window;
@@ -27,9 +27,9 @@ namespace RenderThing {
         VkExtent2D swap_chain_extent;
         std::vector<VkImageView> swap_chain_image_views;
         std::vector<VkFramebuffer> swap_chain_framebuffers;
-        uint32_t swap_chain_image_index = 0;
-        uint32_t frame_flight_index = 0;
-        bool framebuffer_resized = false;
+        uint32_t swap_chain_image_index;
+        uint32_t frame_flight_index;
+        bool framebuffer_resized;
 
         std::unique_ptr<Image> depth_image;
         VkRenderPass render_pass;
@@ -44,7 +44,7 @@ namespace RenderThing {
         VkQueue present_queue;
         VkCommandPool command_pool;
         std::vector<VkCommandBuffer> command_buffers;
-        VkClearValue clear_value = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
+        VkClearValue clear_value;
 
         std::vector<VkSemaphore> image_available_sempahores;
         std::vector<VkSemaphore> render_finished_semaphores;
@@ -84,30 +84,17 @@ namespace RenderThing {
 
         // getters/setters
 
-        VkCommandBuffer get_command_buffer() const { return command_buffers[frame_flight_index]; }
-        VkDevice get_device() const { return device; }
-        VkPhysicalDevice get_physical_device() const { return physical_device; }
-        VkClearValue get_clear_value() const { return clear_value; }
-        VkCommandPool get_command_pool() const { return command_pool; }
-        VkQueue get_graphics_queue() const { return graphics_queue; }
-        VkQueue get_present_queue() const { return present_queue; }
-        VkExtent2D get_swapchain_extent() const { return swap_chain_extent; }
-        GraphicsContext get_context() const {
-            return (GraphicsContext) {
-                .instance = instance,
-                .device = device,
-                .physical_device = physical_device,
-                .command_pool = command_pool,
-                .command_buffer = command_buffers[frame_flight_index],
-                .swapchain_extent = swap_chain_extent,
-                .pipeline_layout = pipeline_layout,
-                .graphics_queue = graphics_queue,
-                .present_queue = present_queue,
-                .window = window
-            };
-        }
-        float get_aspect() const { return swap_chain_extent.width / (float)swap_chain_extent.height; }
-        void set_clear_value(VkClearValue clear_value) { this->clear_value = clear_value; }
-        void mark_resized() { framebuffer_resized = true; }
+        VkCommandBuffer get_command_buffer() const;
+        VkDevice get_device() const;
+        VkPhysicalDevice get_physical_device() const;
+        VkClearValue get_clear_value() const;
+        VkCommandPool get_command_pool() const;
+        VkQueue get_graphics_queue() const;
+        VkQueue get_present_queue() const;
+        VkExtent2D get_swapchain_extent() const;
+        GraphicsContext get_context() const;
+        float get_aspect() const;
+        void set_clear_value(VkClearValue clear_value);
+        void mark_resized();
     };
 }

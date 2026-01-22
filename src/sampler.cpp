@@ -42,4 +42,6 @@ namespace RenderThing {
         vkDeviceWaitIdle(device);
         vkDestroySampler(device, sampler, nullptr);
     }
+
+    VkSampler Sampler::get_sampler() const { return sampler; }
 }

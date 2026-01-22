@@ -36,9 +36,9 @@ namespace RenderThing {
         void CopyData(const void* data, const GraphicsContext& ctx);
         void TransitionToLayout(VkImageLayout layout, const GraphicsContext& ctx);
 
-        VkImage get_image() const { return image; }
-        VkImageView get_view() const { return view; }
-        uint32_t get_width() const { return width; }
-        uint32_t get_height() const { return height; }
+        VkImage get_image() const;
+        VkImageView get_view() const;
+        uint32_t get_width() const;
+        uint32_t get_height() const;
     };
 }

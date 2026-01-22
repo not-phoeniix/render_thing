@@ -113,4 +113,9 @@ namespace RenderThing {
         );
         image_layout = layout;
     }
+
+    VkImage Image::get_image() const { return image; }
+    VkImageView Image::get_view() const { return view; }
+    uint32_t Image::get_width() const { return width; }
+    uint32_t Image::get_height() const { return height; }
 }

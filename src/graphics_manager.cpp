@@ -202,7 +202,13 @@ static VkFormat find_depth_format(VkPhysicalDevice physical_device) {
 #pragma region // Class definitions <3
 
 namespace RenderThing {
-    GraphicsManager::GraphicsManager(GLFWwindow* window) : window(window) {
+    GraphicsManager::GraphicsManager(GLFWwindow* window)
+      : physical_device(nullptr),
+        window(window),
+        swap_chain_image_index(0),
+        frame_flight_index(0),
+        framebuffer_resized(false),
+        clear_value({{{0.0f, 0.0f, 0.0f, 1.0f}}}) {
         glfwSetWindowUserPointer(window, this);
         glfwSetFramebufferSizeCallback(window, framebuffer_resize_callback);
 
@@ -1150,6 +1156,34 @@ namespace RenderThing {
             data
         );
     }
+
+    VkCommandBuffer GraphicsManager::get_command_buffer() const { return command_buffers[frame_flight_index]; }
+    VkDevice GraphicsManager::get_device() const { return device; }
+    VkPhysicalDevice GraphicsManager::get_physical_device() const { return physical_device; }
+    VkClearValue GraphicsManager::get_clear_value() const { return clear_value; }
+    VkCommandPool GraphicsManager::get_command_pool() const { return command_pool; }
+    VkQueue GraphicsManager::get_graphics_queue() const { return graphics_queue; }
+    VkQueue GraphicsManager::get_present_queue() const { return present_queue; }
+    VkExtent2D GraphicsManager::get_swapchain_extent() const { return swap_chain_extent; }
+    GraphicsContext GraphicsManager::get_context() const {
+        return (GraphicsContext) {
+            .instance = instance,
+            .device = device,
+            .physical_device = physical_device,
+            .command_pool = command_pool,
+            .command_buffer = command_buffers[frame_flight_index],
+            .swapchain_extent = swap_chain_extent,
+            .pipeline_layout = pipeline_layout,
+            .graphics_queue = graphics_queue,
+            .present_queue = present_queue,
+            .window = window
+        };
+    }
+    float GraphicsManager::get_aspect() const {
+        return swap_chain_extent.width / (float)swap_chain_extent.height;
+    }
+    void GraphicsManager::set_clear_value(VkClearValue clear_value) { this->clear_value = clear_value; }
+    void GraphicsManager::mark_resized() { framebuffer_resized = true; }
 }
 
 #pragma endregion

@@ -14,7 +14,7 @@ namespace RenderThing {
        private:
         VkDevice device;
         VkBuffer buffer;
-        void* mapped = nullptr;
+        void* mapped;
         VkDeviceMemory device_memory;
         VkDeviceSize size;
         VkBufferUsageFlags buffer_usage;

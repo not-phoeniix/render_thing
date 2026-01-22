@@ -26,11 +26,11 @@ namespace RenderThing {
 
        public:
         Mesh(const MeshCreateInfo& create_info, const GraphicsContext& ctx);
-        ~Mesh() = default;
+        ~Mesh();
 
-        VkBuffer get_vertex_buffer() const { return vertex_buffer->get_buffer(); }
-        VkBuffer get_index_buffer() const { return index_buffer->get_buffer(); }
-        uint32_t get_num_vertices() const { return num_vertices; }
-        uint32_t get_num_indices() const { return num_indices; }
+        VkBuffer get_vertex_buffer() const;
+        VkBuffer get_index_buffer() const;
+        uint32_t get_num_vertices() const;
+        uint32_t get_num_indices() const;
     };
 }
