@@ -512,7 +512,7 @@ namespace RenderThing {
 
         VkFormat depth_format = find_depth_format(physical_device);
 
-        ImageWrapperCreateInfo create_info = {
+        ImageCreateInfo create_info = {
             .width = swap_chain_extent.width,
             .height = swap_chain_extent.height,
             .format = depth_format,
@@ -521,7 +521,7 @@ namespace RenderThing {
             .memory_properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
             .view_aspect_flags = VK_IMAGE_ASPECT_DEPTH_BIT
         };
-        depth_image = std::make_unique<ImageWrapper>(create_info, ctx);
+        depth_image = std::make_unique<Image>(create_info, ctx);
         depth_image->TransitionToLayout(VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL, ctx);
     }
 
@@ -1103,12 +1103,12 @@ namespace RenderThing {
         }
     }
 
-    std::shared_ptr<UniformWrapper> GraphicsManager::MakeNewUniform(VkImageView image_view, VkSampler sampler) {
+    std::shared_ptr<Uniform> GraphicsManager::MakeNewUniform(VkImageView image_view, VkSampler sampler) {
         if (uniforms.size() >= MAX_NUM_UNIFORMS) {
             return nullptr;
         }
 
-        UniformWrapperCreateInfo create_info = {
+        UniformCreateInfo create_info = {
             .frame_flight_count = MAX_FRAMES_IN_FLIGHT,
             .layout = descriptor_set_layout,
             .pool = descriptor_pool,
@@ -1116,7 +1116,7 @@ namespace RenderThing {
             .sampler = sampler
         };
 
-        auto uniform = std::make_shared<UniformWrapper>(
+        auto uniform = std::make_shared<Uniform>(
             create_info,
             get_context()
         );
@@ -1126,7 +1126,7 @@ namespace RenderThing {
         return uniform;
     }
 
-    void GraphicsManager::CmdBindUniform(std::shared_ptr<UniformWrapper> uniform) {
+    void GraphicsManager::CmdBindUniform(std::shared_ptr<Uniform> uniform) {
         VkDescriptorSet set = uniform->get_descriptor_set();
         vkCmdBindDescriptorSets(
             command_buffers[frame_flight_index],

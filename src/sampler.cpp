@@ -1,8 +1,8 @@
-#include "sampler_wrapper.h"
+#include "sampler.h"
 #include <stdexcept>
 
 namespace RenderThing {
-    SamplerWrapper::SamplerWrapper(const SamplerWrapperCreateInfo& create_info, const GraphicsContext& ctx)
+    Sampler::Sampler(const SamplerCreateInfo& create_info, const GraphicsContext& ctx)
       : device(ctx.device) {
         VkPhysicalDeviceProperties properties;
         vkGetPhysicalDeviceProperties(ctx.physical_device, &properties);
@@ -38,7 +38,7 @@ namespace RenderThing {
         }
     }
 
-    SamplerWrapper::~SamplerWrapper() {
+    Sampler::~Sampler() {
         vkDeviceWaitIdle(device);
         vkDestroySampler(device, sampler, nullptr);
     }

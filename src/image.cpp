@@ -1,11 +1,11 @@
-#include "image_wrapper.h"
+#include "image.h"
 
 #include <stdexcept>
 #include "vk_helpers.h"
-#include "buffer_wrapper.h"
+#include "buffer.h"
 
 namespace RenderThing {
-    ImageWrapper::ImageWrapper(const ImageWrapperCreateInfo& create_info, const GraphicsContext& ctx)
+    Image::Image(const ImageCreateInfo& create_info, const GraphicsContext& ctx)
       : device(ctx.device),
         image_format(create_info.format),
         width(create_info.width),
@@ -14,7 +14,7 @@ namespace RenderThing {
         CreateImageView(create_info, ctx);
     }
 
-    ImageWrapper::~ImageWrapper() {
+    Image::~Image() {
         vkDeviceWaitIdle(device);
 
         vkDestroyImage(device, image, nullptr);
@@ -22,7 +22,7 @@ namespace RenderThing {
         vkDestroyImageView(device, view, nullptr);
     }
 
-    void ImageWrapper::CreateImage(const ImageWrapperCreateInfo& create_info, const GraphicsContext& ctx) {
+    void Image::CreateImage(const ImageCreateInfo& create_info, const GraphicsContext& ctx) {
         VkImageCreateInfo image_create_info = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
             .imageType = VK_IMAGE_TYPE_2D,
@@ -67,7 +67,7 @@ namespace RenderThing {
         vkBindImageMemory(device, image, memory, 0);
     }
 
-    void ImageWrapper::CreateImageView(const ImageWrapperCreateInfo& create_info, const GraphicsContext& ctx) {
+    void Image::CreateImageView(const ImageCreateInfo& create_info, const GraphicsContext& ctx) {
         VkImageViewCreateInfo view_create_info = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .image = image,
@@ -87,13 +87,13 @@ namespace RenderThing {
         }
     }
 
-    void ImageWrapper::CopyData(const void* data, const GraphicsContext& ctx) {
-        BufferWrapperCreateInfo staging_create_info = {
+    void Image::CopyData(const void* data, const GraphicsContext& ctx) {
+        BufferCreateInfo staging_create_info = {
             .size = size,
             .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
             .properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
         };
-        BufferWrapper staging_buffer(staging_create_info, ctx);
+        Buffer staging_buffer(staging_create_info, ctx);
         staging_buffer.CopyFromHostAuto(data, static_cast<size_t>(size));
 
         TransitionToLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, ctx);
@@ -103,7 +103,7 @@ namespace RenderThing {
         TransitionToLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, ctx);
     }
 
-    void ImageWrapper::TransitionToLayout(VkImageLayout layout, const GraphicsContext& ctx) {
+    void Image::TransitionToLayout(VkImageLayout layout, const GraphicsContext& ctx) {
         transition_image_layout(
             image,
             image_format,

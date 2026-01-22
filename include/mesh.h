@@ -2,7 +2,7 @@
 
 #include <vulkan/vulkan.h>
 #include "vertex.h"
-#include "buffer_wrapper.h"
+#include "buffer.h"
 #include <memory>
 #include "graphics_context.h"
 
@@ -18,8 +18,8 @@ namespace RenderThing {
        private:
         VkDevice device;
 
-        std::unique_ptr<BufferWrapper> vertex_buffer;
-        std::unique_ptr<BufferWrapper> index_buffer;
+        std::unique_ptr<Buffer> vertex_buffer;
+        std::unique_ptr<Buffer> index_buffer;
 
         uint32_t num_vertices;
         uint32_t num_indices;

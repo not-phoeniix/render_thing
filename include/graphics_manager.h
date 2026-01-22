@@ -1,15 +1,14 @@
 #pragma once
 
-#define VULKAN_HPP_NO_STRUCT_CONSTRUCTORS
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <GLFW/glfw3.h>
-#include "buffer_wrapper.h"
+#include "buffer.h"
 #include <memory>
 #include "uniform_buffer_object.h"
-#include "uniform_wrapper.h"
+#include "uniform.h"
 #include "graphics_context.h"
-#include "image_wrapper.h"
+#include "image.h"
 #include "camera_push_constants.h"
 #include "pixel_push_constants.h"
 
@@ -32,14 +31,14 @@ namespace RenderThing {
         uint32_t frame_flight_index = 0;
         bool framebuffer_resized = false;
 
-        std::unique_ptr<ImageWrapper> depth_image;
+        std::unique_ptr<Image> depth_image;
         VkRenderPass render_pass;
         VkPipelineLayout pipeline_layout;
         VkPipeline graphics_pipeline;
 
         VkDescriptorSetLayout descriptor_set_layout;
         VkDescriptorPool descriptor_pool;
-        std::vector<std::shared_ptr<UniformWrapper>> uniforms;
+        std::vector<std::shared_ptr<Uniform>> uniforms;
 
         VkQueue graphics_queue;
         VkQueue present_queue;
@@ -79,8 +78,8 @@ namespace RenderThing {
         void Begin();
         void EndAndPresent();
 
-        std::shared_ptr<UniformWrapper> MakeNewUniform(VkImageView image_view, VkSampler sampler);
-        void CmdBindUniform(std::shared_ptr<UniformWrapper> uniform);
+        std::shared_ptr<Uniform> MakeNewUniform(VkImageView image_view, VkSampler sampler);
+        void CmdBindUniform(std::shared_ptr<Uniform> uniform);
         void CmdPushConstants(const void* data, size_t data_size, VkShaderStageFlags shader_stage, uint32_t offset);
 
         // getters/setters

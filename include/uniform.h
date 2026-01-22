@@ -3,13 +3,13 @@
 #include <cstdint>
 #include <vector>
 #include <vulkan/vulkan.h>
-#include "buffer_wrapper.h"
+#include "buffer.h"
 #include "uniform_buffer_object.h"
 #include <memory>
 #include "graphics_context.h"
 
 namespace RenderThing {
-    struct UniformWrapperCreateInfo {
+    struct UniformCreateInfo {
         uint32_t frame_flight_count;
         VkDescriptorSetLayout layout;
         VkDescriptorPool pool;
@@ -17,26 +17,24 @@ namespace RenderThing {
         VkSampler sampler;
     };
 
-    class UniformWrapper {
+    class Uniform {
        private:
         VkDevice device;
         uint32_t frame_flight_count;
         uint32_t frame_flight_index;
         std::vector<VkDescriptorSet> descriptor_sets;
-        std::vector<std::unique_ptr<BufferWrapper>> uniform_buffers;
+        std::vector<std::unique_ptr<Buffer>> uniform_buffers;
 
         void CreateBuffers(uint32_t count, const GraphicsContext& ctx);
-        void CreateDescriptors(uint32_t count, const UniformWrapperCreateInfo& create_info);
+        void CreateDescriptors(uint32_t count, const UniformCreateInfo& create_info);
 
        public:
-        UniformWrapper(const UniformWrapperCreateInfo& create_info, const GraphicsContext& ctx);
-        ~UniformWrapper();
+        Uniform(const UniformCreateInfo& create_info, const GraphicsContext& ctx);
+        ~Uniform();
 
-        void NextIndex() {
-            frame_flight_index = (frame_flight_index + 1) % frame_flight_count;
-        }
-
+        void NextIndex();
         void CopyData(const UniformBufferObject& data);
-        VkDescriptorSet get_descriptor_set() { return descriptor_sets[frame_flight_index]; }
+
+        VkDescriptorSet get_descriptor_set();
     };
 }

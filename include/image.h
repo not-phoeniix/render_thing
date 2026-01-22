@@ -4,7 +4,7 @@
 #include "graphics_context.h"
 
 namespace RenderThing {
-    struct ImageWrapperCreateInfo {
+    struct ImageCreateInfo {
         uint32_t width;
         uint32_t height;
         VkFormat format;
@@ -14,7 +14,7 @@ namespace RenderThing {
         VkImageAspectFlags view_aspect_flags;
     };
 
-    class ImageWrapper {
+    class Image {
        private:
         VkDevice device;
         VkImage image;
@@ -26,12 +26,12 @@ namespace RenderThing {
         uint32_t width;
         uint32_t height;
 
-        void CreateImage(const ImageWrapperCreateInfo& create_info, const GraphicsContext& ctx);
-        void CreateImageView(const ImageWrapperCreateInfo& create_info, const GraphicsContext& ctx);
+        void CreateImage(const ImageCreateInfo& create_info, const GraphicsContext& ctx);
+        void CreateImageView(const ImageCreateInfo& create_info, const GraphicsContext& ctx);
 
        public:
-        ImageWrapper(const ImageWrapperCreateInfo& create_info, const GraphicsContext& ctx);
-        ~ImageWrapper();
+        Image(const ImageCreateInfo& create_info, const GraphicsContext& ctx);
+        ~Image();
 
         void CopyData(const void* data, const GraphicsContext& ctx);
         void TransitionToLayout(VkImageLayout layout, const GraphicsContext& ctx);

@@ -4,13 +4,13 @@
 #include "graphics_context.h"
 
 namespace RenderThing {
-    struct BufferWrapperCreateInfo {
+    struct BufferCreateInfo {
         VkDeviceSize size;
         VkBufferUsageFlags usage;
         VkMemoryPropertyFlags properties;
     };
 
-    class BufferWrapper {
+    class Buffer {
        private:
         VkDevice device;
         VkBuffer buffer;
@@ -21,20 +21,18 @@ namespace RenderThing {
         VkMemoryPropertyFlags memory_properties;
 
        public:
-        BufferWrapper(const BufferWrapperCreateInfo& create_info, const GraphicsContext& ctx);
-        ~BufferWrapper();
+        Buffer(const BufferCreateInfo& create_info, const GraphicsContext& ctx);
+        ~Buffer();
 
         // maps, copies, and unmaps memory automatically
         void CopyFromHostAuto(const void* data, size_t size);
         void CopyFromHost(const void* data, size_t size);
-        void CopyFromBuffer(const BufferWrapper& src, const GraphicsContext& ctx);
+        void CopyFromBuffer(const Buffer& src, const GraphicsContext& ctx);
         void Map();
         void Unmap();
 
-        VkBuffer get_buffer() const {
-            return buffer;
-        }
-        VkDeviceSize get_size() const { return size; }
-        bool get_mapped() const { return (mapped != nullptr); }
+        VkBuffer get_buffer() const;
+        VkDeviceSize get_size() const;
+        bool get_mapped() const;
     };
 }

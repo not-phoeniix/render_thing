@@ -1,25 +1,25 @@
-#include "uniform_wrapper.h"
+#include "uniform.h"
 
 #include <stdexcept>
 
 namespace RenderThing {
-    void UniformWrapper::CreateBuffers(uint32_t count, const GraphicsContext& ctx) {
+    void Uniform::CreateBuffers(uint32_t count, const GraphicsContext& ctx) {
         VkDeviceSize size = sizeof(UniformBufferObject);
         uniform_buffers.resize(count);
 
         for (uint32_t i = 0; i < count; i++) {
-            BufferWrapperCreateInfo create_info = {
+            BufferCreateInfo create_info = {
                 .size = size,
                 .usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                 .properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
             };
 
-            uniform_buffers[i] = std::make_unique<BufferWrapper>(create_info, ctx);
+            uniform_buffers[i] = std::make_unique<Buffer>(create_info, ctx);
             uniform_buffers[i]->Map();
         }
     }
 
-    void UniformWrapper::CreateDescriptors(uint32_t count, const UniformWrapperCreateInfo& create_info) {
+    void Uniform::CreateDescriptors(uint32_t count, const UniformCreateInfo& create_info) {
         std::vector<VkDescriptorSetLayout> layouts(count, create_info.layout);
         VkDescriptorSetAllocateInfo alloc_info = {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
@@ -85,8 +85,8 @@ namespace RenderThing {
         }
     }
 
-    UniformWrapper::UniformWrapper(
-        const UniformWrapperCreateInfo& create_info,
+    Uniform::Uniform(
+        const UniformCreateInfo& create_info,
         const GraphicsContext& ctx
     ) : device(ctx.device),
         frame_flight_count(create_info.frame_flight_count),
@@ -95,15 +95,23 @@ namespace RenderThing {
         CreateDescriptors(create_info.frame_flight_count, create_info);
     }
 
-    UniformWrapper::~UniformWrapper() {
+    Uniform::~Uniform() {
         uniform_buffers.clear();
         descriptor_sets.clear();
     }
 
-    void UniformWrapper::CopyData(const UniformBufferObject& data) {
+    void Uniform::CopyData(const UniformBufferObject& data) {
         uniform_buffers[frame_flight_index]->CopyFromHost(
             &data,
             sizeof(UniformBufferObject)
         );
+    }
+
+    void Uniform::NextIndex() {
+        frame_flight_index = (frame_flight_index + 1) % frame_flight_count;
+    }
+
+    VkDescriptorSet Uniform::get_descriptor_set() {
+        return descriptor_sets[frame_flight_index];
     }
 }

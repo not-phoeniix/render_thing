@@ -1,10 +1,10 @@
-#include "buffer_wrapper.h"
+#include "buffer.h"
 #include <stdexcept>
 #include <cstring>
 #include "vk_helpers.h"
 
 namespace RenderThing {
-    BufferWrapper::BufferWrapper(const BufferWrapperCreateInfo& create_info, const GraphicsContext& ctx)
+    Buffer::Buffer(const BufferCreateInfo& create_info, const GraphicsContext& ctx)
       : device(ctx.device),
         size(create_info.size),
         buffer_usage(create_info.usage),
@@ -41,7 +41,7 @@ namespace RenderThing {
         vkBindBufferMemory(ctx.device, buffer, device_memory, 0);
     }
 
-    BufferWrapper::~BufferWrapper() {
+    Buffer::~Buffer() {
         vkDeviceWaitIdle(device);
 
         Unmap();
@@ -50,13 +50,13 @@ namespace RenderThing {
         vkFreeMemory(device, device_memory, nullptr);
     }
 
-    void BufferWrapper::CopyFromHostAuto(const void* data, size_t size) {
+    void Buffer::CopyFromHostAuto(const void* data, size_t size) {
         Map();
         CopyFromHost(data, size);
         Unmap();
     }
 
-    void BufferWrapper::CopyFromHost(const void* data, size_t size) {
+    void Buffer::CopyFromHost(const void* data, size_t size) {
         if (
             (memory_properties & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) == 0 ||
             (memory_properties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == 0
@@ -71,7 +71,7 @@ namespace RenderThing {
         memcpy(mapped, data, size);
     }
 
-    void BufferWrapper::CopyFromBuffer(const BufferWrapper& src, const GraphicsContext& ctx) {
+    void Buffer::CopyFromBuffer(const Buffer& src, const GraphicsContext& ctx) {
         if ((src.buffer_usage & VK_BUFFER_USAGE_TRANSFER_SRC_BIT) == 0) {
             throw std::runtime_error("Cannot copy data from a buffer whose usage doesn't include VK_BUFFER_USAGE_TRANSFER_SRC_BIT!");
         }
@@ -94,16 +94,28 @@ namespace RenderThing {
         end_single_use_commands(command_buffer, ctx);
     }
 
-    void BufferWrapper::Map() {
+    void Buffer::Map() {
         if (mapped == nullptr) {
             vkMapMemory(device, device_memory, 0, size, 0, &mapped);
         }
     }
 
-    void BufferWrapper::Unmap() {
+    void Buffer::Unmap() {
         if (mapped != nullptr) {
             vkUnmapMemory(device, device_memory);
             mapped = nullptr;
         }
+    }
+
+    VkBuffer Buffer::get_buffer() const {
+        return buffer;
+    }
+
+    VkDeviceSize Buffer::get_size() const {
+        return size;
+    }
+
+    bool Buffer::get_mapped() const {
+        return mapped != nullptr;
     }
 }

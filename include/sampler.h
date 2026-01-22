@@ -4,7 +4,7 @@
 #include "graphics_context.h"
 
 namespace RenderThing {
-    struct SamplerWrapperCreateInfo {
+    struct SamplerCreateInfo {
         VkFilter min_filter;
         VkFilter mag_filter;
         VkSamplerAddressMode address_u;
@@ -12,14 +12,14 @@ namespace RenderThing {
         VkSamplerAddressMode address_w;
     };
 
-    class SamplerWrapper {
+    class Sampler {
        private:
         VkDevice device;
         VkSampler sampler;
 
        public:
-        SamplerWrapper(const SamplerWrapperCreateInfo& create_info, const GraphicsContext& ctx);
-        ~SamplerWrapper();
+        Sampler(const SamplerCreateInfo& create_info, const GraphicsContext& ctx);
+        ~Sampler();
 
         VkSampler get_sampler() const { return sampler; }
     };
