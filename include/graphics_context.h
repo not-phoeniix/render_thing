@@ -15,5 +15,6 @@ namespace RenderThing {
         VkQueue graphics_queue;
         VkQueue present_queue;
         GLFWwindow* window;
+        VkSurfaceKHR surface;
     };
 }

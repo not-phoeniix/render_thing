@@ -5,23 +5,6 @@
 #include "buffer.h"
 
 namespace RenderThing {
-    Image::Image(const ImageCreateInfo& create_info, const GraphicsContext& ctx)
-      : device(ctx.device),
-        image_format(create_info.format),
-        width(create_info.width),
-        height(create_info.height) {
-        CreateImage(create_info, ctx);
-        CreateImageView(create_info, ctx);
-    }
-
-    Image::~Image() {
-        vkDeviceWaitIdle(device);
-
-        vkDestroyImage(device, image, nullptr);
-        vkFreeMemory(device, memory, nullptr);
-        vkDestroyImageView(device, view, nullptr);
-    }
-
     void Image::CreateImage(const ImageCreateInfo& create_info, const GraphicsContext& ctx) {
         VkImageCreateInfo image_create_info = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -87,6 +70,23 @@ namespace RenderThing {
         }
     }
 
+    Image::Image(const ImageCreateInfo& create_info, const GraphicsContext& ctx)
+      : device(ctx.device),
+        image_format(create_info.format),
+        width(create_info.width),
+        height(create_info.height) {
+        CreateImage(create_info, ctx);
+        CreateImageView(create_info, ctx);
+    }
+
+    Image::~Image() {
+        vkDeviceWaitIdle(device);
+
+        vkDestroyImage(device, image, nullptr);
+        vkFreeMemory(device, memory, nullptr);
+        vkDestroyImageView(device, view, nullptr);
+    }
+
     void Image::CopyData(const void* data, const GraphicsContext& ctx) {
         BufferCreateInfo staging_create_info = {
             .size = size,
@@ -118,4 +118,5 @@ namespace RenderThing {
     VkImageView Image::get_view() const { return view; }
     uint32_t Image::get_width() const { return width; }
     uint32_t Image::get_height() const { return height; }
+    VkFormat Image::get_format() const { return image_format; }
 }

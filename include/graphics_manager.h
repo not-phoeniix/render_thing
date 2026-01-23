@@ -11,6 +11,7 @@
 #include "image.h"
 #include "camera_push_constants.h"
 #include "pixel_push_constants.h"
+#include "swap_chain.h"
 
 namespace RenderThing {
     class GraphicsManager {
@@ -21,17 +22,12 @@ namespace RenderThing {
         VkSurfaceKHR surface;
         GLFWwindow* window;
 
-        VkSwapchainKHR swap_chain;
-        std::vector<VkImage> swap_chain_images;
-        VkFormat swap_chain_image_format;
-        VkExtent2D swap_chain_extent;
-        std::vector<VkImageView> swap_chain_image_views;
-        std::vector<VkFramebuffer> swap_chain_framebuffers;
-        uint32_t swap_chain_image_index;
-        uint32_t frame_flight_index;
+        std::unique_ptr<SwapChain> swap_chain;
+        std::vector<VkSemaphore> image_available_sempahores;
+        std::vector<VkSemaphore> render_finished_semaphores;
+        std::vector<VkFence> in_flight_fences;
         bool framebuffer_resized;
 
-        std::unique_ptr<Image> depth_image;
         VkRenderPass render_pass;
         VkPipelineLayout pipeline_layout;
         VkPipeline graphics_pipeline;
@@ -46,29 +42,21 @@ namespace RenderThing {
         std::vector<VkCommandBuffer> command_buffers;
         VkClearValue clear_value;
 
-        std::vector<VkSemaphore> image_available_sempahores;
-        std::vector<VkSemaphore> render_finished_semaphores;
-        std::vector<VkFence> in_flight_fences;
-
         void CreateInstance();
         void PickPhysicalDevice();
         void CreateLogicalDevice();
         void CreateSurface();
-        void CreateSwapChain();
-        void CreateImageViews();
-        void CreateDepthResources();
 
         void CreateDescriptorSetLayout();
         void CreateDescriptorPool();
 
         void CreateRenderPass();
+        void CreateSwapChain();
         void CreateGraphicsPipeline();
-        void CreateFramebuffers();
         void CreateCommandPool();
         void CreateCommandBuffers();
         void CreateSyncObjects();
 
-        void CleanupSwapChain();
         void RecreateSwapChain();
 
        public:

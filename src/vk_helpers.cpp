@@ -22,6 +22,15 @@ VkFormat find_supported_format(
     throw std::runtime_error("Failed to find supported format!");
 }
 
+VkFormat find_depth_format(VkPhysicalDevice physical_device) {
+    return find_supported_format(
+        {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
+        VK_IMAGE_TILING_OPTIMAL,
+        VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT,
+        physical_device
+    );
+}
+
 uint32_t find_memory_type(uint32_t type_filter, VkMemoryPropertyFlags properties, VkPhysicalDevice physical_device) {
     VkPhysicalDeviceMemoryProperties mem_properties;
     vkGetPhysicalDeviceMemoryProperties(physical_device, &mem_properties);
@@ -57,7 +66,7 @@ VkCommandBuffer begin_single_use_commands(const RenderThing::GraphicsContext& ct
 }
 
 void end_single_use_commands(
-    VkCommandBuffer command_buffer, 
+    VkCommandBuffer command_buffer,
     const RenderThing::GraphicsContext& ctx
 ) {
     vkEndCommandBuffer(command_buffer);
@@ -210,4 +219,61 @@ void copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t width, uint32
     );
 
     end_single_use_commands(command_buffer, ctx);
+}
+
+SwapChainSupportDetails query_swap_chain_support(VkPhysicalDevice device, VkSurfaceKHR surface) {
+    SwapChainSupportDetails details;
+
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
+
+    uint32_t format_count = 0;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &format_count, nullptr);
+    if (format_count > 0) {
+        details.formats.resize(format_count);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &format_count, details.formats.data());
+    }
+
+    uint32_t present_mode_count = 0;
+    vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &present_mode_count, nullptr);
+    if (present_mode_count > 0) {
+        details.present_modes.resize(present_mode_count);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(
+            device,
+            surface,
+            &present_mode_count,
+            details.present_modes.data()
+        );
+    }
+
+    return details;
+}
+
+QueueFamilyIndices find_queue_families(VkPhysicalDevice device, VkSurfaceKHR surface) {
+    QueueFamilyIndices indices;
+
+    uint32_t queue_family_count = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, nullptr);
+    std::vector<VkQueueFamilyProperties> queue_families(queue_family_count);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, queue_families.data());
+
+    // find the indices of the returned families and store !!!
+    for (uint32_t i = 0; i < queue_family_count; i++) {
+        // check for graphics support at this queue index, save index if so
+        if ((queue_families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
+            indices.graphics = i;
+        }
+
+        // check for present support at this queue index, save index if so
+        VkBool32 present_support = false;
+        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &present_support);
+        if (present_support) {
+            indices.present = i;
+        }
+
+        if (indices.is_complete()) {
+            break;
+        }
+    }
+
+    return indices;
 }

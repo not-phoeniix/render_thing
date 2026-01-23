@@ -40,5 +40,6 @@ namespace RenderThing {
         VkImageView get_view() const;
         uint32_t get_width() const;
         uint32_t get_height() const;
+        VkFormat get_format() const;
     };
 }
