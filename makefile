@@ -27,14 +27,14 @@ static: $(BIN_STATIC)
 dynamic: $(BIN_DYNAMIC)
 
 $(BIN_DYNAMIC): $(OBJ)
-	@echo "linking dynamic..."
+	@printf "linking dynamic...  \t"
 	@$(CXX) $(OBJ) $(POST_FLAGS) -o $(BIN_DYNAMIC)
-	@echo "done :D"	
+	@printf "done :D\n"	
 
 $(BIN_STATIC): $(OBJ_COMBINED)
-	@echo "linking static..."
+	@printf "linking static...  \t"
 	@$(ARCHIVER) $(ARCHIVE_FLAGS) $(BIN_STATIC) $(OBJ_COMBINED)
-	@echo "done :D"	
+	@printf "done :D\n"	
 
 $(OBJ_COMBINED): $(OBJ)
 	@$(CXX) $(OBJ) $(POST_FLAGS) -o $(OBJ_COMBINED)
