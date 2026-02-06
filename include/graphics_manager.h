@@ -12,6 +12,7 @@
 #include "camera_push_constants.h"
 #include "pixel_push_constants.h"
 #include "swap_chain.h"
+#include "graphics_pipeline.h"
 
 namespace RenderThing {
     class GraphicsManager {
@@ -29,8 +30,7 @@ namespace RenderThing {
         bool framebuffer_resized;
 
         VkRenderPass render_pass;
-        VkPipelineLayout pipeline_layout;
-        VkPipeline graphics_pipeline;
+        std::unique_ptr<GraphicsPipeline> pipeline;
 
         VkDescriptorSetLayout descriptor_set_layout;
         VkDescriptorPool descriptor_pool;

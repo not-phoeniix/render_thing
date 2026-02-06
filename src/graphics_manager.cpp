@@ -161,8 +161,7 @@ namespace RenderThing {
         vkDestroyDescriptorPool(device, descriptor_pool, nullptr);
         vkDestroyDescriptorSetLayout(device, descriptor_set_layout, nullptr);
 
-        vkDestroyPipeline(device, graphics_pipeline, nullptr);
-        vkDestroyPipelineLayout(device, pipeline_layout, nullptr);
+        pipeline.reset();
         vkDestroyRenderPass(device, render_pass, nullptr);
         vkDestroyCommandPool(device, command_pool, nullptr);
 
@@ -579,32 +578,25 @@ namespace RenderThing {
             .pPushConstantRanges = push_constant_ranges.data()
         };
 
-        if (vkCreatePipelineLayout(device, &layout_create_info, nullptr, &pipeline_layout) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to create pipeline layout!");
-        }
-
         // ~~~ CREATE GRAPHICS PIPELINE ITSELF!!!! ~~~
 
-        VkGraphicsPipelineCreateInfo pipeline_create_info = {
-            .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-            .stageCount = 2,
-            .pStages = shader_stages,
-            .pVertexInputState = &vertex_input_create_info,
-            .pInputAssemblyState = &input_assembly_create_info,
-            .pViewportState = &viewport_create_info,
-            .pRasterizationState = &rasterizer_create_info,
-            .pMultisampleState = &multisample_create_info,
-            .pDepthStencilState = &depth_stencil_create_info,
-            .pColorBlendState = &color_blend_create_info,
-            .pDynamicState = &dynamic_state_create_info,
-            .layout = pipeline_layout,
-            .renderPass = render_pass,
-            .subpass = 0
+        GraphicsPipelineCreateInfo pipeline_create_info = {
+            .shader_stages = shader_stages,
+            .shader_stage_count = 2,
+            .vertex_input = &vertex_input_create_info,
+            .input_assembly = &input_assembly_create_info,
+            .viewport = &viewport_create_info,
+            .rasterizer = &rasterizer_create_info,
+            .multisample = &multisample_create_info,
+            .depth_stencil = &depth_stencil_create_info,
+            .color_blend = &color_blend_create_info,
+            .dynamic_state = &dynamic_state_create_info,
+            .layout_create_info = &layout_create_info,
+            .render_pass = render_pass,
+            .subpass_index = 0
         };
 
-        if (vkCreateGraphicsPipelines(device, nullptr, 1, &pipeline_create_info, nullptr, &graphics_pipeline) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to create graphics pipeline!");
-        }
+        pipeline = std::make_unique<GraphicsPipeline>(pipeline_create_info, get_context());
 
         // ~~~ clean up shaders ~~~
 
@@ -826,7 +818,7 @@ namespace RenderThing {
 
         vkCmdBeginRenderPass(command_buffer, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
 
-        vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphics_pipeline);
+        vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->get_pipeline());
 
         // dynamic state things !!! :D
 
@@ -939,7 +931,7 @@ namespace RenderThing {
         vkCmdBindDescriptorSets(
             command_buffers[swap_chain->get_frame_index()],
             VK_PIPELINE_BIND_POINT_GRAPHICS,
-            pipeline_layout,
+            pipeline->get_layout(),
             0,
             1,
             &set,
@@ -951,7 +943,7 @@ namespace RenderThing {
     void GraphicsManager::CmdPushConstants(const void* data, size_t data_size, VkShaderStageFlags shader_stage, uint32_t offset) {
         vkCmdPushConstants(
             command_buffers[swap_chain->get_frame_index()],
-            pipeline_layout,
+            pipeline->get_layout(),
             shader_stage,
             offset,
             data_size,
@@ -973,12 +965,15 @@ namespace RenderThing {
             .device = device,
             .physical_device = physical_device,
             .command_pool = command_pool,
-            .pipeline_layout = pipeline_layout,
             .graphics_queue = graphics_queue,
             .present_queue = present_queue,
             .window = window,
             .surface = surface
         };
+
+        if (pipeline != nullptr) {
+            ctx.pipeline_layout = pipeline->get_layout();
+        }
 
         if (swap_chain != nullptr) {
             ctx.command_buffer = command_buffers[swap_chain->get_frame_index()];
