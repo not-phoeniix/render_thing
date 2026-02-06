@@ -1,4 +1,4 @@
-#include "mesh.h"
+#include "etc/mesh.h"
 
 namespace RenderThing {
     Mesh::Mesh(const MeshCreateInfo& create_info, const GraphicsContext& ctx)

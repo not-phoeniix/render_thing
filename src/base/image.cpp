@@ -1,8 +1,8 @@
-#include "image.h"
+#include "base/image.h"
 
 #include <stdexcept>
-#include "vk_helpers.h"
-#include "buffer.h"
+#include "../vk_helpers.h"
+#include "base/buffer.h"
 
 namespace RenderThing {
     void Image::CreateImage(const ImageCreateInfo& create_info, const GraphicsContext& ctx) {

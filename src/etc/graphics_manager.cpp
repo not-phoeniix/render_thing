@@ -1,4 +1,4 @@
-#include "graphics_manager.h"
+#include "etc/graphics_manager.h"
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <cstring>
@@ -8,9 +8,9 @@
 #include <cstdint>
 #include <limits>
 #include <algorithm>
-#include "shader_helper.h"
+#include "../shader_helper.h"
 #include "vertex.h"
-#include "vk_helpers.h"
+#include "../vk_helpers.h"
 
 constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 constexpr uint32_t MAX_NUM_UNIFORMS = 20000;

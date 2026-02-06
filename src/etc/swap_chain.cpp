@@ -1,5 +1,5 @@
-#include "swap_chain.h"
-#include "vk_helpers.h"
+#include "etc/swap_chain.h"
+#include "../vk_helpers.h"
 #include <limits>
 #include <algorithm>
 #include <stdexcept>

@@ -1,4 +1,4 @@
-#include "sampler.h"
+#include "base/sampler.h"
 #include <stdexcept>
 
 namespace RenderThing {

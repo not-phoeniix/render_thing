@@ -1,7 +1,7 @@
-#include "buffer.h"
+#include "base/buffer.h"
 #include <stdexcept>
 #include <cstring>
-#include "vk_helpers.h"
+#include "../vk_helpers.h"
 
 namespace RenderThing {
     Buffer::Buffer(const BufferCreateInfo& create_info, const GraphicsContext& ctx)

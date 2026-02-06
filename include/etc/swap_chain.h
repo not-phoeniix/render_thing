@@ -3,7 +3,7 @@
 #include <vulkan/vulkan.h>
 #include "graphics_context.h"
 #include <vector>
-#include "image.h"
+#include "base/image.h"
 #include <memory>
 
 namespace RenderThing {
