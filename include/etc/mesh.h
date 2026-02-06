@@ -1,10 +1,9 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include "vertex.h"
-#include "base/buffer.h"
 #include <memory>
-#include "graphics_context.h"
+#include "../base/base.h"
+#include "../vertex.h"
 
 namespace RenderThing {
     struct MeshCreateInfo {

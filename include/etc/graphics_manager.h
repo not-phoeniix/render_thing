@@ -3,16 +3,13 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <GLFW/glfw3.h>
-#include "base/buffer.h"
 #include <memory>
-#include "uniform_buffer_object.h"
+#include "../uniform_buffer_object.h"
+#include "../camera_push_constants.h"
+#include "../pixel_push_constants.h"
+#include "../base/base.h"
 #include "uniform.h"
-#include "graphics_context.h"
-#include "base/image.h"
-#include "camera_push_constants.h"
-#include "pixel_push_constants.h"
 #include "swap_chain.h"
-#include "base/graphics_pipeline.h"
 
 namespace RenderThing {
     class GraphicsManager {
