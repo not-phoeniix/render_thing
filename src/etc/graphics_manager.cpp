@@ -121,15 +121,15 @@ static void framebuffer_resize_callback(GLFWwindow* window, int width, int heigh
 #pragma region // Class definitions <3
 
 namespace RenderThing {
-    GraphicsManager::GraphicsManager(GLFWwindow* window)
+    GraphicsManager::GraphicsManager(const GraphicsManagerCreateInfo& create_info)
       : physical_device(nullptr),
-        window(window),
+        window(create_info.window),
         framebuffer_resized(false),
-        clear_value({{{0.0f, 0.0f, 0.0f, 1.0f}}}) {
+        clear_value(create_info.clear_value) {
         glfwSetWindowUserPointer(window, this);
         glfwSetFramebufferSizeCallback(window, framebuffer_resize_callback);
 
-        CreateInstance();
+        instance = std::make_unique<Instance>(create_info.instance);
         CreateSurface();
         PickPhysicalDevice();
         CreateLogicalDevice();
@@ -166,101 +166,20 @@ namespace RenderThing {
         vkDestroyCommandPool(device, command_pool, nullptr);
 
         vkDestroyDevice(device, nullptr);
-        vkDestroySurfaceKHR(instance, surface, nullptr);
-        vkDestroyInstance(instance, nullptr);
-    }
-
-    void GraphicsManager::CreateInstance() {
-        VkApplicationInfo app_info = {
-            .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-            .pApplicationName = "Triangle 3 <3",
-            .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
-            .pEngineName = "No Engine :O",
-            .engineVersion = VK_MAKE_VERSION(1, 0, 0),
-            .apiVersion = VK_API_VERSION_1_4
-        };
-
-        // ~~~ vulkan validation layers ~~~
-
-        std::vector<const char*> layers_to_use;
-        if (ENABLE_VALIDATION_LAYERS) {
-            uint32_t layer_count = 0;
-            vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
-            std::vector<VkLayerProperties> available_layers(layer_count);
-            vkEnumerateInstanceLayerProperties(&layer_count, available_layers.data());
-
-            // make sure that each validation layer we wannna use is
-            //   actually in the supported layer properties list
-            for (const char* layer_name : VALIDATION_LAYERS) {
-                bool found = false;
-
-                for (const auto& layer_properties : available_layers) {
-                    if (strcmp(layer_name, layer_properties.layerName) == 0) {
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (!found) {
-                    throw std::runtime_error("Validation layer requested but not available: " + std::string(layer_name));
-                }
-            }
-
-            layers_to_use.assign(VALIDATION_LAYERS.begin(), VALIDATION_LAYERS.end());
-        }
-
-        // ~~~ GLFW instance extensions ~~~
-
-        // get GLFW extension
-        uint32_t glfw_extension_count = 0;
-        const char** glfw_extensions = glfwGetRequiredInstanceExtensions(&glfw_extension_count);
-
-        // make sure extensions are supported
-        uint32_t extension_count = 0;
-        vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr);
-        std::vector<VkExtensionProperties> extensions(extension_count);
-        vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, extensions.data());
-
-        for (uint32_t i = 0; i < glfw_extension_count; i++) {
-            bool found = false;
-            for (const auto& extension : extensions) {
-                if (strcmp(glfw_extensions[i], extension.extensionName) == 0) {
-                    found = true;
-                    break;
-                }
-            }
-
-            if (!found) {
-                throw std::runtime_error("Required GLFW extension not supported: " + std::string(glfw_extensions[i]));
-            }
-        }
-
-        // ~~~ create instance itself ~~~
-
-        VkInstanceCreateInfo create_info = {
-            .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-            .pApplicationInfo = &app_info,
-            .enabledLayerCount = static_cast<uint32_t>(layers_to_use.size()),
-            .ppEnabledLayerNames = layers_to_use.data(),
-            .enabledExtensionCount = glfw_extension_count,
-            .ppEnabledExtensionNames = glfw_extensions
-        };
-
-        if (vkCreateInstance(&create_info, nullptr, &instance) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to create instance!");
-        }
+        vkDestroySurfaceKHR(instance->get_instance(), surface, nullptr);
+        instance.reset();
     }
 
     void GraphicsManager::PickPhysicalDevice() {
         uint32_t device_count = 0;
-        vkEnumeratePhysicalDevices(instance, &device_count, nullptr);
+        vkEnumeratePhysicalDevices(instance->get_instance(), &device_count, nullptr);
 
         if (device_count == 0) {
             throw std::runtime_error("Failed to find GPUs with Vulkan support!");
         }
 
         std::vector<VkPhysicalDevice> devices(device_count);
-        vkEnumeratePhysicalDevices(instance, &device_count, devices.data());
+        vkEnumeratePhysicalDevices(instance->get_instance(), &device_count, devices.data());
 
         for (const auto& device : devices) {
             if (is_device_suitable(device, surface)) {
@@ -329,7 +248,7 @@ namespace RenderThing {
     }
 
     void GraphicsManager::CreateSurface() {
-        if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
+        if (glfwCreateWindowSurface(instance->get_instance(), window, nullptr, &surface) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create window surface!");
         }
     }
@@ -354,7 +273,7 @@ namespace RenderThing {
         };
 
         VkAttachmentDescription depth_attachment = {
-            .format = find_depth_format(physical_device),
+            .format = swap_chain->get_depth_format(),
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
             .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
@@ -961,7 +880,7 @@ namespace RenderThing {
     VkExtent2D GraphicsManager::get_swapchain_extent() const { return swap_chain->get_extent(); }
     GraphicsContext GraphicsManager::get_context() const {
         GraphicsContext ctx = {
-            .instance = instance,
+            .instance = instance->get_instance(),
             .device = device,
             .physical_device = physical_device,
             .command_pool = command_pool,

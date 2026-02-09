@@ -12,9 +12,18 @@
 #include "swap_chain.h"
 
 namespace RenderThing {
+    struct GraphicsManagerCreateInfo {
+        uint32_t frames_in_flight;
+        VkClearValue clear_value;
+        GLFWwindow* window;
+        InstanceCreateInfo& instance;
+        SwapChainCreateInfo& swap_chain;
+        GraphicsPipelineCreateInfo& graphics_pipeline;
+    };
+
     class GraphicsManager {
        private:
-        VkInstance instance;
+        std::unique_ptr<Instance> instance;
         VkPhysicalDevice physical_device;
         VkDevice device;
         VkSurfaceKHR surface;
@@ -39,7 +48,6 @@ namespace RenderThing {
         std::vector<VkCommandBuffer> command_buffers;
         VkClearValue clear_value;
 
-        void CreateInstance();
         void PickPhysicalDevice();
         void CreateLogicalDevice();
         void CreateSurface();
@@ -57,7 +65,7 @@ namespace RenderThing {
         void RecreateSwapChain();
 
        public:
-        GraphicsManager(GLFWwindow* window);
+        GraphicsManager(const GraphicsManagerCreateInfo& create_info);
         ~GraphicsManager();
 
         void Begin();
