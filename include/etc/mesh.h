@@ -3,13 +3,14 @@
 #include <vulkan/vulkan.h>
 #include <memory>
 #include "../base/base.h"
-#include "../vertex.h"
 
 namespace RenderThing {
     struct MeshCreateInfo {
-        const Vertex* vertices;
+        const void* vertices;
+        size_t vertex_size;
         uint32_t num_vertices;
-        const uint32_t* indices;
+        const void* indices;
+        size_t index_size;
         uint32_t num_indices;
     };
 
