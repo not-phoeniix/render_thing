@@ -1,7 +1,7 @@
 #include "base/buffer.h"
 #include <stdexcept>
 #include <cstring>
-#include "../vk_helpers.h"
+#include "vk_utils.h"
 
 namespace RenderThing {
     Buffer::Buffer(const BufferCreateInfo& create_info, const GraphicsContext& ctx)
@@ -28,7 +28,7 @@ namespace RenderThing {
         VkMemoryAllocateInfo alloc_info {
             .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
             .allocationSize = mem_req.size,
-            .memoryTypeIndex = find_memory_type(
+            .memoryTypeIndex = Utils::find_memory_type(
                 mem_req.memoryTypeBits,
                 create_info.properties,
                 ctx.physical_device
@@ -81,7 +81,7 @@ namespace RenderThing {
             throw std::runtime_error("Cannot copy data into a buffer whose usage doesn't include VK_BUFFER_USAGE_TRANSFER_DST_BIT!");
         }
 
-        VkCommandBuffer command_buffer = begin_single_use_commands(ctx);
+        VkCommandBuffer command_buffer = Utils::begin_single_use_commands(ctx);
 
         VkDeviceSize copy_size = src.size;
         if (copy_size > size) copy_size = size;
@@ -92,7 +92,7 @@ namespace RenderThing {
         };
         vkCmdCopyBuffer(command_buffer, src.buffer, buffer, 1, &copy_region);
 
-        end_single_use_commands(command_buffer, ctx);
+        Utils::end_single_use_commands(command_buffer, ctx);
     }
 
     void Buffer::Map() {

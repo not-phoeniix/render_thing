@@ -10,7 +10,7 @@
 #include <algorithm>
 #include "../shader_helper.h"
 #include "vertex.h"
-#include "../vk_helpers.h"
+#include "vk_utils.h"
 
 constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 constexpr uint32_t MAX_NUM_UNIFORMS = 20000;
@@ -22,103 +22,10 @@ const std::vector<const char*> DEVICE_EXTENSIONS = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
-#pragma region // Helper functions!
-
-static bool check_device_extension_support(VkPhysicalDevice device) {
-    uint32_t extension_count = 0;
-    vkEnumerateDeviceExtensionProperties(device, nullptr, &extension_count, nullptr);
-    std::vector<VkExtensionProperties> available_extensions(extension_count);
-    vkEnumerateDeviceExtensionProperties(device, nullptr, &extension_count, available_extensions.data());
-
-    // we use string so equality comparisons work in the set
-    std::set<std::string> required_extensions(DEVICE_EXTENSIONS.begin(), DEVICE_EXTENSIONS.end());
-
-    for (const auto& extension : available_extensions) {
-        required_extensions.erase(extension.extensionName);
-    }
-
-    return required_extensions.empty();
-}
-
-static bool is_device_suitable(VkPhysicalDevice device, VkSurfaceKHR surface) {
-    QueueFamilyIndices indices = find_queue_families(device, surface);
-
-    bool extensions_supported = check_device_extension_support(device);
-
-    bool swap_chain_adequate = false;
-    if (extensions_supported) {
-        SwapChainSupportDetails details = query_swap_chain_support(device, surface);
-        swap_chain_adequate = !details.formats.empty() && !details.present_modes.empty();
-    }
-
-    VkPhysicalDeviceFeatures features;
-    vkGetPhysicalDeviceFeatures(device, &features);
-
-    return indices.is_complete() &&
-           extensions_supported &&
-           swap_chain_adequate &&
-           features.samplerAnisotropy;
-}
-
-static VkSurfaceFormatKHR choose_swap_surface_format(const std::vector<VkSurfaceFormatKHR>& formats) {
-    for (const auto& format : formats) {
-        if (
-            format.format == VK_FORMAT_B8G8R8A8_SRGB &&
-            format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
-        ) {
-            return format;
-        }
-    }
-
-    return formats[0];
-}
-
-static VkPresentModeKHR choose_swap_present_mode(const std::vector<VkPresentModeKHR>& present_modes) {
-    for (const auto& present_mode : present_modes) {
-        if (present_mode == VK_PRESENT_MODE_MAILBOX_KHR) {
-            return present_mode;
-        }
-    }
-
-    return VK_PRESENT_MODE_FIFO_KHR;
-}
-
-static VkExtent2D choose_swap_extent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow* window) {
-    if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
-        return capabilities.currentExtent;
-    } else {
-        int width;
-        int height;
-        glfwGetFramebufferSize(window, &width, &height);
-
-        VkExtent2D actual_extent = {
-            static_cast<uint32_t>(width),
-            static_cast<uint32_t>(height)
-        };
-
-        actual_extent.width = std::clamp(
-            actual_extent.width,
-            capabilities.minImageExtent.width,
-            capabilities.maxImageExtent.width
-        );
-        actual_extent.height = std::clamp(
-            actual_extent.height,
-            capabilities.minImageExtent.height,
-            capabilities.maxImageExtent.height
-        );
-
-        return actual_extent;
-    }
-}
-
 static void framebuffer_resize_callback(GLFWwindow* window, int width, int height) {
     auto manager = reinterpret_cast<RenderThing::GraphicsManager*>(glfwGetWindowUserPointer(window));
     manager->mark_resized();
 }
-
-#pragma endregion
-
-#pragma region // Class definitions <3
 
 namespace RenderThing {
     GraphicsManager::GraphicsManager(const GraphicsManagerCreateInfo& create_info)
@@ -182,7 +89,7 @@ namespace RenderThing {
         vkEnumeratePhysicalDevices(instance->get_instance(), &device_count, devices.data());
 
         for (const auto& device : devices) {
-            if (is_device_suitable(device, surface)) {
+            if (Utils::is_device_suitable(device, surface, DEVICE_EXTENSIONS.data(), DEVICE_EXTENSIONS.size())) {
                 physical_device = device;
                 break;
             }
@@ -194,7 +101,7 @@ namespace RenderThing {
     }
 
     void GraphicsManager::CreateLogicalDevice() {
-        QueueFamilyIndices indices = find_queue_families(physical_device, surface);
+        QueueFamilyIndices indices = Utils::find_queue_families(physical_device, surface);
 
         std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
         // we use a set so we dont have duplicate indices <3
@@ -254,10 +161,10 @@ namespace RenderThing {
     }
 
     void GraphicsManager::CreateRenderPass() {
-        SwapChainSupportDetails details = query_swap_chain_support(physical_device, surface);
+        SwapChainSupportDetails details = Utils::query_swap_chain_support(physical_device, surface);
 
         VkAttachmentDescription color_attachment = {
-            .format = choose_swap_surface_format(details.formats).format,
+            .format = Utils::choose_swap_surface_format(details.formats).format,
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
             .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -327,14 +234,14 @@ namespace RenderThing {
     void GraphicsManager::CreateSwapChain() {
         GraphicsContext ctx = get_context();
 
-        SwapChainSupportDetails details = query_swap_chain_support(physical_device, surface);
+        SwapChainSupportDetails details = Utils::query_swap_chain_support(physical_device, surface);
 
         SwapChainCreateInfo create_info = {
-            .depth_format = find_depth_format(physical_device),
-            .surface_format = choose_swap_surface_format(details.formats),
-            .present_mode = choose_swap_present_mode(details.present_modes),
+            .depth_format = Utils::find_depth_format(physical_device),
+            .surface_format = Utils::choose_swap_surface_format(details.formats),
+            .present_mode = Utils::choose_swap_present_mode(details.present_modes),
             .frame_flight_count = 2,
-            .extent = choose_swap_extent(details.capabilities, window),
+            .extent = Utils::choose_swap_extent(details.capabilities, window),
             .render_pass = render_pass,
         };
 
@@ -524,7 +431,7 @@ namespace RenderThing {
     }
 
     void GraphicsManager::CreateCommandPool() {
-        QueueFamilyIndices indices = find_queue_families(physical_device, surface);
+        QueueFamilyIndices indices = Utils::find_queue_families(physical_device, surface);
 
         VkCommandPoolCreateInfo create_info = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -911,5 +818,3 @@ namespace RenderThing {
     void GraphicsManager::set_clear_value(VkClearValue clear_value) { this->clear_value = clear_value; }
     void GraphicsManager::mark_resized() { framebuffer_resized = true; }
 }
-
-#pragma endregion

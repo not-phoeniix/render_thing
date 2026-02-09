@@ -1,7 +1,7 @@
 #include "base/image.h"
 
 #include <stdexcept>
-#include "../vk_helpers.h"
+#include "vk_utils.h"
 #include "base/buffer.h"
 
 namespace RenderThing {
@@ -36,7 +36,7 @@ namespace RenderThing {
         VkMemoryAllocateInfo alloc_info = {
             .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
             .allocationSize = mem_requirements.size,
-            .memoryTypeIndex = find_memory_type(
+            .memoryTypeIndex = Utils::find_memory_type(
                 mem_requirements.memoryTypeBits,
                 create_info.memory_properties,
                 ctx.physical_device
@@ -98,13 +98,13 @@ namespace RenderThing {
 
         TransitionToLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, ctx);
 
-        copy_buffer_to_image(staging_buffer.get_buffer(), image, width, height, ctx);
+        Utils::copy_buffer_to_image(staging_buffer.get_buffer(), image, width, height, ctx);
 
         TransitionToLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, ctx);
     }
 
     void Image::TransitionToLayout(VkImageLayout layout, const GraphicsContext& ctx) {
-        transition_image_layout(
+        Utils::transition_image_layout(
             image,
             image_format,
             image_layout,

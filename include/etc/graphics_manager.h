@@ -16,9 +16,9 @@ namespace RenderThing {
         uint32_t frames_in_flight;
         VkClearValue clear_value;
         GLFWwindow* window;
-        InstanceCreateInfo& instance;
-        SwapChainCreateInfo& swap_chain;
-        GraphicsPipelineCreateInfo& graphics_pipeline;
+        const InstanceCreateInfo& instance;
+        const SwapChainCreateInfo& swap_chain;
+        // const GraphicsPipelineCreateInfo& graphics_pipeline;
     };
 
     class GraphicsManager {

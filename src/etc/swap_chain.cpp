@@ -1,5 +1,5 @@
 #include "etc/swap_chain.h"
-#include "../vk_helpers.h"
+#include "vk_utils.h"
 #include <limits>
 #include <algorithm>
 #include <stdexcept>
@@ -11,7 +11,7 @@
 
 namespace RenderThing {
     void SwapChain::CreateSwapChain(const SwapChainCreateInfo& create_info, const GraphicsContext& ctx) {
-        SwapChainSupportDetails details = query_swap_chain_support(ctx.physical_device, ctx.surface);
+        SwapChainSupportDetails details = Utils::query_swap_chain_support(ctx.physical_device, ctx.surface);
 
         // VkSurfaceFormatKHR surface_format = choose_swap_surface_format(details.formats);
         // VkPresentModeKHR present_mode = choose_swap_present_mode(details.present_modes);
@@ -41,7 +41,7 @@ namespace RenderThing {
         };
 
         // set up queue families for swapchain
-        QueueFamilyIndices indices = find_queue_families(ctx.physical_device, ctx.surface);
+        QueueFamilyIndices indices = Utils::find_queue_families(ctx.physical_device, ctx.surface);
         std::array<uint32_t, 2> queue_family_indices = {
             indices.graphics.value(),
             indices.present.value()
