@@ -101,6 +101,12 @@ namespace RenderThing {
         }
     }
 
+    void Buffer::Map(uint64_t offset, size_t size) {
+        if (mapped == nullptr) {
+            vkMapMemory(device, device_memory, offset, size, 0, &mapped);
+        }
+    }
+
     void Buffer::Unmap() {
         if (mapped != nullptr) {
             vkUnmapMemory(device, device_memory);

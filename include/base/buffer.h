@@ -29,6 +29,7 @@ namespace RenderThing {
         void CopyFromHost(const void* data, size_t size);
         void CopyFromBuffer(const Buffer& src, const GraphicsContext& ctx);
         void Map();
+        void Map(uint64_t offset, size_t size);
         void Unmap();
 
         VkBuffer get_buffer() const;
