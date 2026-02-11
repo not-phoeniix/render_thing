@@ -1,7 +1,6 @@
 #include "base/descriptor_pool.h"
 
 #include <stdexcept>
-#include "descriptor_pool.h"
 
 namespace RenderThing {
     DescriptorPool::DescriptorPool(const DescriptorPoolCreateInfo& create_info, const GraphicsContext& ctx)
