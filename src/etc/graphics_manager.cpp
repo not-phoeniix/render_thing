@@ -65,7 +65,7 @@ namespace RenderThing {
         }
 
         uniforms.clear();
-        vkDestroyDescriptorPool(device, descriptor_pool, nullptr);
+        descriptor_pool.reset();
         vkDestroyDescriptorSetLayout(device, descriptor_set_layout, nullptr);
 
         pipeline.reset();
@@ -506,20 +506,13 @@ namespace RenderThing {
             },
         };
 
-        VkDescriptorPoolCreateInfo create_info = {
-            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-            .maxSets = MAX_NUM_UNIFORMS * MAX_FRAMES_IN_FLIGHT,
-            .poolSizeCount = static_cast<uint32_t>(pool_sizes.size()),
-            .pPoolSizes = pool_sizes.data(),
+        DescriptorPoolCreateInfo create_info = {
+            .max_sets = MAX_NUM_UNIFORMS * MAX_FRAMES_IN_FLIGHT,
+            .pool_sizes = pool_sizes.data(),
+            .pool_size_count = static_cast<uint32_t>(pool_sizes.size()),
         };
 
-        VkResult result = vkCreateDescriptorPool(device, &create_info, nullptr, &descriptor_pool);
-        if (result != VK_SUCCESS) {
-            throw std::runtime_error(
-                "Failed to create descriptor pool! result: " +
-                std::to_string(static_cast<int32_t>(result))
-            );
-        }
+        descriptor_pool = std::make_unique<DescriptorPool>(create_info, get_context());
     }
 
     void GraphicsManager::CreateDescriptorSetLayout() {
@@ -737,7 +730,7 @@ namespace RenderThing {
         UniformCreateInfo create_info = {
             .frame_flight_count = MAX_FRAMES_IN_FLIGHT,
             .layout = descriptor_set_layout,
-            .pool = descriptor_pool,
+            .pool = descriptor_pool->get_pool(),
             .image_view = image_view,
             .sampler = sampler
         };

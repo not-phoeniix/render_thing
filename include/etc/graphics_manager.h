@@ -39,7 +39,7 @@ namespace RenderThing {
         std::unique_ptr<GraphicsPipeline> pipeline;
 
         VkDescriptorSetLayout descriptor_set_layout;
-        VkDescriptorPool descriptor_pool;
+        std::unique_ptr<DescriptorPool> descriptor_pool;
         std::vector<std::shared_ptr<Uniform>> uniforms;
 
         VkQueue graphics_queue;

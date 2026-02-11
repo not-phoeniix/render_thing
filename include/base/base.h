@@ -6,3 +6,4 @@
 #include "sampler.h"
 #include "graphics_context.h"
 #include "instance.h"
+#include "descriptor_pool.h"
