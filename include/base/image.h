@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include "graphics_context.h"
+#include "context_structs.h"
 
 namespace RenderThing {
     struct ImageCreateInfo {
@@ -26,15 +26,15 @@ namespace RenderThing {
         uint32_t width;
         uint32_t height;
 
-        void CreateImage(const ImageCreateInfo& create_info, const GraphicsContext& ctx);
-        void CreateImageView(const ImageCreateInfo& create_info, const GraphicsContext& ctx);
+        void CreateImage(const ImageCreateInfo& create_info, const ApiContext& a_ctx);
+        void CreateImageView(const ImageCreateInfo& create_info, const ApiContext& a_ctx);
 
        public:
-        Image(const ImageCreateInfo& create_info, const GraphicsContext& ctx);
+        Image(const ImageCreateInfo& create_info, const ApiContext& a_ctx);
         ~Image();
 
-        void CopyData(const void* data, const GraphicsContext& ctx);
-        void TransitionToLayout(VkImageLayout layout, const GraphicsContext& ctx);
+        void CopyData(const void* data, const GraphicsContext& g_ctx, const ApiContext& a_ctx);
+        void TransitionToLayout(VkImageLayout layout, const GraphicsContext& g_ctx, const ApiContext& a_ctx);
 
         VkImage get_image() const;
         VkImageView get_view() const;

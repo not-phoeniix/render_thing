@@ -29,13 +29,13 @@ namespace RenderThing {
         uint32_t image_index;
         uint32_t frame_flight_index;
 
-        void CreateSwapChain(const SwapChainCreateInfo& create_info, const GraphicsContext& ctx);
-        void CreateImageViews(const GraphicsContext& ctx);
-        void CreateDepthImage(const SwapChainCreateInfo& create_info, const GraphicsContext& ctx);
-        void CreateFrameBuffers(const SwapChainCreateInfo& create_info, const GraphicsContext& ctx);
+        void CreateSwapChain(const SwapChainCreateInfo& create_info, const ApiContext& a_ctx);
+        void CreateImageViews(const ApiContext& a_ctx);
+        void CreateDepthImage(const SwapChainCreateInfo& create_info, const GraphicsContext& g_ctx, const ApiContext& a_ctx);
+        void CreateFrameBuffers(const SwapChainCreateInfo& create_info, const ApiContext& a_ctx);
 
        public:
-        SwapChain(const SwapChainCreateInfo& create_info, const GraphicsContext& ctx);
+        SwapChain(const SwapChainCreateInfo& create_info, const GraphicsContext& g_ctx, const ApiContext& a_ctx);
         ~SwapChain();
 
         VkResult NextImage(VkSemaphore semaphore, VkFence fence);

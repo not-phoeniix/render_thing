@@ -232,8 +232,6 @@ namespace RenderThing {
     }
 
     void GraphicsManager::CreateSwapChain() {
-        GraphicsContext ctx = get_context();
-
         SwapChainSupportDetails details = Utils::query_swap_chain_support(physical_device, surface);
 
         SwapChainCreateInfo create_info = {
@@ -245,7 +243,7 @@ namespace RenderThing {
             .render_pass = render_pass,
         };
 
-        swap_chain = std::make_unique<SwapChain>(create_info, ctx);
+        swap_chain = std::make_unique<SwapChain>(create_info, get_graphics_context(), get_api_context());
     }
 
     void GraphicsManager::CreateGraphicsPipeline() {
@@ -422,7 +420,7 @@ namespace RenderThing {
             .subpass_index = 0
         };
 
-        pipeline = std::make_unique<GraphicsPipeline>(pipeline_create_info, get_context());
+        pipeline = std::make_unique<GraphicsPipeline>(pipeline_create_info, get_api_context());
 
         // ~~~ clean up shaders ~~~
 
@@ -512,7 +510,7 @@ namespace RenderThing {
             .pool_size_count = static_cast<uint32_t>(pool_sizes.size()),
         };
 
-        descriptor_pool = std::make_unique<DescriptorPool>(create_info, get_context());
+        descriptor_pool = std::make_unique<DescriptorPool>(create_info, get_api_context());
     }
 
     void GraphicsManager::CreateDescriptorSetLayout() {
@@ -737,7 +735,7 @@ namespace RenderThing {
 
         auto uniform = std::make_shared<Uniform>(
             create_info,
-            get_context()
+            get_api_context()
         );
 
         uniforms.push_back(uniform);
@@ -778,29 +776,28 @@ namespace RenderThing {
     VkQueue GraphicsManager::get_graphics_queue() const { return graphics_queue; }
     VkQueue GraphicsManager::get_present_queue() const { return present_queue; }
     VkExtent2D GraphicsManager::get_swapchain_extent() const { return swap_chain->get_extent(); }
-    GraphicsContext GraphicsManager::get_context() const {
-        GraphicsContext ctx = {
+    ApiContext GraphicsManager::get_api_context() const {
+        ApiContext ctx = {
             .instance = instance->get_instance(),
             .device = device,
             .physical_device = physical_device,
-            .command_pool = command_pool,
-            .graphics_queue = graphics_queue,
-            .present_queue = present_queue,
             .window = window,
             .surface = surface
         };
 
-        if (pipeline != nullptr) {
-            ctx.pipeline_layout = pipeline->get_layout();
+        return ctx;
+    }
+    GraphicsContext GraphicsManager::get_graphics_context() const {
+        uint32_t i = 0;
+        if (swap_chain != nullptr) {
+            i = swap_chain->get_image_index();
         }
 
-        if (swap_chain != nullptr) {
-            ctx.command_buffer = command_buffers[swap_chain->get_frame_index()];
-            ctx.swapchain_extent = swap_chain->get_extent();
-        } else {
-            ctx.command_buffer = command_buffers[0];
-            ctx.swapchain_extent = {0, 0};
-        }
+        GraphicsContext ctx = {
+            .graphics_queue = graphics_queue,
+            .command_pool = command_pool,
+            .frame_command_buffer = command_buffers[i]
+        };
 
         return ctx;
     }

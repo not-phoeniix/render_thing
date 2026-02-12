@@ -85,7 +85,8 @@ namespace RenderThing {
         VkQueue get_graphics_queue() const;
         VkQueue get_present_queue() const;
         VkExtent2D get_swapchain_extent() const;
-        GraphicsContext get_context() const;
+        ApiContext get_api_context() const;
+        GraphicsContext get_graphics_context() const;
         float get_aspect() const;
         void set_clear_value(VkClearValue clear_value);
         void mark_resized();

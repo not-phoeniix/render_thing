@@ -3,7 +3,7 @@
 #include <stdexcept>
 
 namespace RenderThing {
-    void Uniform::CreateBuffers(uint32_t count, const GraphicsContext& ctx) {
+    void Uniform::CreateBuffers(uint32_t count, const ApiContext& a_ctx) {
         VkDeviceSize size = sizeof(UniformBufferObject);
         uniform_buffers.resize(count);
 
@@ -14,7 +14,7 @@ namespace RenderThing {
                 .properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
             };
 
-            uniform_buffers[i] = std::make_unique<Buffer>(create_info, ctx);
+            uniform_buffers[i] = std::make_unique<Buffer>(create_info, a_ctx);
             uniform_buffers[i]->Map();
         }
     }
@@ -87,11 +87,11 @@ namespace RenderThing {
 
     Uniform::Uniform(
         const UniformCreateInfo& create_info,
-        const GraphicsContext& ctx
-    ) : device(ctx.device),
+        const ApiContext& a_ctx
+    ) : device(a_ctx.device),
         frame_flight_count(create_info.frame_flight_count),
         frame_flight_index(0) {
-        CreateBuffers(create_info.frame_flight_count, ctx);
+        CreateBuffers(create_info.frame_flight_count, a_ctx);
         CreateDescriptors(create_info.frame_flight_count, create_info);
     }
 

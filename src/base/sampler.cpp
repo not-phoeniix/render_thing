@@ -2,10 +2,10 @@
 #include <stdexcept>
 
 namespace RenderThing {
-    Sampler::Sampler(const SamplerCreateInfo& create_info, const GraphicsContext& ctx)
-      : device(ctx.device) {
+    Sampler::Sampler(const SamplerCreateInfo& create_info, const ApiContext& a_ctx)
+      : device(a_ctx.device) {
         VkPhysicalDeviceProperties properties;
-        vkGetPhysicalDeviceProperties(ctx.physical_device, &properties);
+        vkGetPhysicalDeviceProperties(a_ctx.physical_device, &properties);
 
         VkSamplerCreateInfo sampler_create_info = {
             .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
@@ -33,7 +33,7 @@ namespace RenderThing {
             .unnormalizedCoordinates = VK_FALSE,
         };
 
-        if (vkCreateSampler(ctx.device, &sampler_create_info, nullptr, &sampler) != VK_SUCCESS) {
+        if (vkCreateSampler(a_ctx.device, &sampler_create_info, nullptr, &sampler) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create sampler!");
         }
     }

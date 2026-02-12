@@ -3,8 +3,8 @@
 #include <stdexcept>
 
 namespace RenderThing {
-    DescriptorPool::DescriptorPool(const DescriptorPoolCreateInfo& create_info, const GraphicsContext& ctx)
-      : device(ctx.device) {
+    DescriptorPool::DescriptorPool(const DescriptorPoolCreateInfo& create_info, const ApiContext& a_ctx)
+      : device(a_ctx.device) {
         VkDescriptorPoolCreateInfo pool_info = {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
             .flags = create_info.flags,

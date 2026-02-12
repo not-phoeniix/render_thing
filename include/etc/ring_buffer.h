@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../base/graphics_context.h"
+#include "../base/context_structs.h"
 #include "../base/base.h"
 #include <memory>
 #include <vector>
@@ -28,7 +28,7 @@ namespace RenderThing {
         uint32_t descriptor_index;
 
        public:
-        RingBuffer(const RingBufferCreateInfo& create_info, const GraphicsContext& ctx);
+        RingBuffer(const RingBufferCreateInfo& create_info, const ApiContext& a_ctx);
         ~RingBuffer();
 
         VkDescriptorSet CopyToNextRegion(void* data, size_t size);

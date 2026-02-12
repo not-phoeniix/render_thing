@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include "graphics_context.h"
+#include "context_structs.h"
 
 namespace RenderThing {
     struct SamplerCreateInfo {
@@ -18,7 +18,7 @@ namespace RenderThing {
         VkSampler sampler;
 
        public:
-        Sampler(const SamplerCreateInfo& create_info, const GraphicsContext& ctx);
+        Sampler(const SamplerCreateInfo& create_info, const ApiContext& a_ctx);
         ~Sampler();
 
         VkSampler get_sampler() const;

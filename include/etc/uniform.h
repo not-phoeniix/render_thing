@@ -24,11 +24,11 @@ namespace RenderThing {
         std::vector<VkDescriptorSet> descriptor_sets;
         std::vector<std::unique_ptr<Buffer>> uniform_buffers;
 
-        void CreateBuffers(uint32_t count, const GraphicsContext& ctx);
+        void CreateBuffers(uint32_t count, const ApiContext& a_ctx);
         void CreateDescriptors(uint32_t count, const UniformCreateInfo& create_info);
 
        public:
-        Uniform(const UniformCreateInfo& create_info, const GraphicsContext& ctx);
+        Uniform(const UniformCreateInfo& create_info, const ApiContext& a_ctx);
         ~Uniform();
 
         void NextIndex();

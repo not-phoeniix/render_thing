@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include "graphics_context.h"
+#include "context_structs.h"
 
 namespace RenderThing {
     struct DescriptorPoolCreateInfo {
@@ -17,7 +17,7 @@ namespace RenderThing {
         VkDescriptorPool pool;
 
        public:
-        DescriptorPool(const DescriptorPoolCreateInfo& create_info, const GraphicsContext& ctx);
+        DescriptorPool(const DescriptorPoolCreateInfo& create_info, const ApiContext& a_ctx);
         ~DescriptorPool();
 
         VkDescriptorPool get_pool();

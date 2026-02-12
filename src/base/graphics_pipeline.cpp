@@ -2,9 +2,9 @@
 #include <stdexcept>
 
 namespace RenderThing {
-    GraphicsPipeline::GraphicsPipeline(const GraphicsPipelineCreateInfo& create_info, const GraphicsContext& ctx)
-      : device(ctx.device) {
-        if (vkCreatePipelineLayout(ctx.device, create_info.layout_create_info, nullptr, &pipeline_layout) != VK_SUCCESS) {
+    GraphicsPipeline::GraphicsPipeline(const GraphicsPipelineCreateInfo& create_info, const ApiContext& a_ctx)
+      : device(a_ctx.device) {
+        if (vkCreatePipelineLayout(a_ctx.device, create_info.layout_create_info, nullptr, &pipeline_layout) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create pipeline layout!");
         }
 
@@ -25,7 +25,7 @@ namespace RenderThing {
             .subpass = create_info.subpass_index
         };
 
-        if (vkCreateGraphicsPipelines(ctx.device, nullptr, 1, &pipeline_create_info, nullptr, &graphics_pipeline) != VK_SUCCESS) {
+        if (vkCreateGraphicsPipelines(a_ctx.device, nullptr, 1, &pipeline_create_info, nullptr, &graphics_pipeline) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create graphics pipeline!");
         }
     }

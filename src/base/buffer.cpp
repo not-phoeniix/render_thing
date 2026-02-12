@@ -4,8 +4,8 @@
 #include "vk_utils.h"
 
 namespace RenderThing {
-    Buffer::Buffer(const BufferCreateInfo& create_info, const GraphicsContext& ctx)
-      : device(ctx.device),
+    Buffer::Buffer(const BufferCreateInfo& create_info, const ApiContext& a_ctx)
+      : device(a_ctx.device),
         mapped(nullptr),
         size(create_info.size),
         buffer_usage(create_info.usage),
@@ -18,12 +18,12 @@ namespace RenderThing {
             .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         };
 
-        if (vkCreateBuffer(ctx.device, &buffer_info, nullptr, &buffer) != VK_SUCCESS) {
+        if (vkCreateBuffer(a_ctx.device, &buffer_info, nullptr, &buffer) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create buffer!");
         }
 
         VkMemoryRequirements mem_req;
-        vkGetBufferMemoryRequirements(ctx.device, buffer, &mem_req);
+        vkGetBufferMemoryRequirements(a_ctx.device, buffer, &mem_req);
 
         VkMemoryAllocateInfo alloc_info {
             .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
@@ -31,15 +31,15 @@ namespace RenderThing {
             .memoryTypeIndex = Utils::find_memory_type(
                 mem_req.memoryTypeBits,
                 create_info.properties,
-                ctx.physical_device
+                a_ctx.physical_device
             )
         };
 
-        if (vkAllocateMemory(ctx.device, &alloc_info, nullptr, &device_memory) != VK_SUCCESS) {
+        if (vkAllocateMemory(a_ctx.device, &alloc_info, nullptr, &device_memory) != VK_SUCCESS) {
             throw std::runtime_error("Failed to allocate GPU buffer memory!");
         }
 
-        vkBindBufferMemory(ctx.device, buffer, device_memory, 0);
+        vkBindBufferMemory(a_ctx.device, buffer, device_memory, 0);
     }
 
     Buffer::~Buffer() {
@@ -72,7 +72,7 @@ namespace RenderThing {
         memcpy(mapped, data, size);
     }
 
-    void Buffer::CopyFromBuffer(const Buffer& src, const GraphicsContext& ctx) {
+    void Buffer::CopyFromBuffer(const Buffer& src, const GraphicsContext& g_ctx, const ApiContext& a_ctx) {
         if ((src.buffer_usage & VK_BUFFER_USAGE_TRANSFER_SRC_BIT) == 0) {
             throw std::runtime_error("Cannot copy data from a buffer whose usage doesn't include VK_BUFFER_USAGE_TRANSFER_SRC_BIT!");
         }
@@ -81,7 +81,7 @@ namespace RenderThing {
             throw std::runtime_error("Cannot copy data into a buffer whose usage doesn't include VK_BUFFER_USAGE_TRANSFER_DST_BIT!");
         }
 
-        VkCommandBuffer command_buffer = Utils::begin_single_use_commands(ctx);
+        VkCommandBuffer command_buffer = Utils::begin_single_use_commands(g_ctx, a_ctx);
 
         VkDeviceSize copy_size = src.size;
         if (copy_size > size) copy_size = size;
@@ -92,7 +92,7 @@ namespace RenderThing {
         };
         vkCmdCopyBuffer(command_buffer, src.buffer, buffer, 1, &copy_region);
 
-        Utils::end_single_use_commands(command_buffer, ctx);
+        Utils::end_single_use_commands(command_buffer, g_ctx, a_ctx);
     }
 
     void Buffer::Map() {

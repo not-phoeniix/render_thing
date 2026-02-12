@@ -1,10 +1,10 @@
-#include "ring_buffer.h"
+#include "etc/ring_buffer.h"
 #include <array>
 #include <stdexcept>
 
 namespace RenderThing {
-    RingBuffer::RingBuffer(const RingBufferCreateInfo& create_info, const GraphicsContext& ctx)
-      : device(ctx.device),
+    RingBuffer::RingBuffer(const RingBufferCreateInfo& create_info, const ApiContext& a_ctx)
+      : device(a_ctx.device),
         descriptor_type(create_info.descriptor_type),
         max_elements(create_info.max_elements),
         buffer_offset(0),
@@ -16,7 +16,7 @@ namespace RenderThing {
             .usage = create_info.usage,
             .properties = create_info.properties,
         };
-        buffer = std::make_unique<Buffer>(buffer_info, ctx);
+        buffer = std::make_unique<Buffer>(buffer_info, a_ctx);
 
         // ~~~ create pool ~~~
         VkDescriptorPoolSize pool_size = {
@@ -29,7 +29,7 @@ namespace RenderThing {
             .pool_sizes = &pool_size,
             .pool_size_count = 1
         };
-        pool = std::make_unique<DescriptorPool>(pool_info, ctx);
+        pool = std::make_unique<DescriptorPool>(pool_info, a_ctx);
 
         // ~~~ allocate descriptors ~~~
         descriptor_sets.resize(max_elements);

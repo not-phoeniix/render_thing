@@ -10,8 +10,8 @@
 #pragma endregion
 
 namespace RenderThing {
-    void SwapChain::CreateSwapChain(const SwapChainCreateInfo& create_info, const GraphicsContext& ctx) {
-        SwapChainSupportDetails details = Utils::query_swap_chain_support(ctx.physical_device, ctx.surface);
+    void SwapChain::CreateSwapChain(const SwapChainCreateInfo& create_info, const ApiContext& a_ctx) {
+        SwapChainSupportDetails details = Utils::query_swap_chain_support(a_ctx.physical_device, a_ctx.surface);
 
         // VkSurfaceFormatKHR surface_format = choose_swap_surface_format(details.formats);
         // VkPresentModeKHR present_mode = choose_swap_present_mode(details.present_modes);
@@ -24,7 +24,7 @@ namespace RenderThing {
 
         VkSwapchainCreateInfoKHR swap_create_info = {
             .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-            .surface = ctx.surface,
+            .surface = a_ctx.surface,
             // image info
             .minImageCount = image_count,
             .imageFormat = create_info.surface_format.format,
@@ -41,7 +41,7 @@ namespace RenderThing {
         };
 
         // set up queue families for swapchain
-        QueueFamilyIndices indices = Utils::find_queue_families(ctx.physical_device, ctx.surface);
+        QueueFamilyIndices indices = Utils::find_queue_families(a_ctx.physical_device, a_ctx.surface);
         std::array<uint32_t, 2> queue_family_indices = {
             indices.graphics.value(),
             indices.present.value()
@@ -60,20 +60,20 @@ namespace RenderThing {
         }
 
         // create swapchain itself!!!!
-        if (vkCreateSwapchainKHR(ctx.device, &swap_create_info, nullptr, &swap_chain) != VK_SUCCESS) {
+        if (vkCreateSwapchainKHR(a_ctx.device, &swap_create_info, nullptr, &swap_chain) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create swap chain!");
         }
 
         // then grab images from the swapchain we just created
-        vkGetSwapchainImagesKHR(ctx.device, swap_chain, &image_count, nullptr);
+        vkGetSwapchainImagesKHR(a_ctx.device, swap_chain, &image_count, nullptr);
         images.resize(image_count);
-        vkGetSwapchainImagesKHR(ctx.device, swap_chain, &image_count, images.data());
+        vkGetSwapchainImagesKHR(a_ctx.device, swap_chain, &image_count, images.data());
 
         image_format = create_info.surface_format.format;
         this->extent = extent;
     }
 
-    void SwapChain::CreateImageViews(const GraphicsContext& ctx) {
+    void SwapChain::CreateImageViews(const ApiContext& a_ctx) {
         image_views.resize(images.size());
 
         for (size_t i = 0; i < images.size(); i++) {
@@ -97,13 +97,13 @@ namespace RenderThing {
                 },
             };
 
-            if (vkCreateImageView(ctx.device, &create_info, nullptr, &image_views[i]) != VK_SUCCESS) {
+            if (vkCreateImageView(a_ctx.device, &create_info, nullptr, &image_views[i]) != VK_SUCCESS) {
                 throw std::runtime_error("Failed to create swap chain image views!");
             }
         }
     }
 
-    void SwapChain::CreateDepthImage(const SwapChainCreateInfo& create_info, const GraphicsContext& ctx) {
+    void SwapChain::CreateDepthImage(const SwapChainCreateInfo& create_info, const GraphicsContext& g_ctx, const ApiContext& a_ctx) {
         ImageCreateInfo image_create_info = {
             .width = extent.width,
             .height = extent.height,
@@ -113,11 +113,11 @@ namespace RenderThing {
             .memory_properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
             .view_aspect_flags = VK_IMAGE_ASPECT_DEPTH_BIT
         };
-        depth_image = std::make_unique<Image>(image_create_info, ctx);
-        depth_image->TransitionToLayout(VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL, ctx);
+        depth_image = std::make_unique<Image>(image_create_info, a_ctx);
+        depth_image->TransitionToLayout(VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL, g_ctx, a_ctx);
     }
 
-    void SwapChain::CreateFrameBuffers(const SwapChainCreateInfo& create_info, const GraphicsContext& ctx) {
+    void SwapChain::CreateFrameBuffers(const SwapChainCreateInfo& create_info, const ApiContext& a_ctx) {
         framebuffers.resize(image_views.size());
 
         for (size_t i = 0; i < image_views.size(); i++) {
@@ -136,14 +136,14 @@ namespace RenderThing {
                 .layers = 1
             };
 
-            if (vkCreateFramebuffer(ctx.device, &fb_create_info, nullptr, &framebuffers[i]) != VK_SUCCESS) {
+            if (vkCreateFramebuffer(a_ctx.device, &fb_create_info, nullptr, &framebuffers[i]) != VK_SUCCESS) {
                 throw std::runtime_error("Failed to create framebuffer!");
             }
         }
     }
 
-    SwapChain::SwapChain(const SwapChainCreateInfo& create_info, const GraphicsContext& ctx)
-      : device(ctx.device),
+    SwapChain::SwapChain(const SwapChainCreateInfo& create_info, const GraphicsContext& g_ctx, const ApiContext& a_ctx)
+      : device(a_ctx.device),
         extent(create_info.extent),
         frame_flight_count(create_info.frame_flight_count),
         image_index(0),
@@ -152,10 +152,10 @@ namespace RenderThing {
             throw std::runtime_error("Cannot create swap chain with a frame flight count of zero!");
         }
 
-        CreateSwapChain(create_info, ctx);
-        CreateImageViews(ctx);
-        CreateDepthImage(create_info, ctx);
-        CreateFrameBuffers(create_info, ctx);
+        CreateSwapChain(create_info, a_ctx);
+        CreateImageViews(a_ctx);
+        CreateDepthImage(create_info, g_ctx, a_ctx);
+        CreateFrameBuffers(create_info, a_ctx);
     }
 
     SwapChain::~SwapChain() {

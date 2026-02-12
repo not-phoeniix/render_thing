@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include "graphics_context.h"
+#include "context_structs.h"
 
 namespace RenderThing {
     struct BufferCreateInfo {
@@ -21,13 +21,13 @@ namespace RenderThing {
         VkMemoryPropertyFlags memory_properties;
 
        public:
-        Buffer(const BufferCreateInfo& create_info, const GraphicsContext& ctx);
+        Buffer(const BufferCreateInfo& create_info, const ApiContext& a_ctx);
         ~Buffer();
 
         // maps, copies, and unmaps memory automatically
         void CopyFromHostAuto(const void* data, size_t size);
         void CopyFromHost(const void* data, size_t size);
-        void CopyFromBuffer(const Buffer& src, const GraphicsContext& ctx);
+        void CopyFromBuffer(const Buffer& src, const GraphicsContext& g_ctx, const ApiContext& a_ctx);
         void Map();
         void Map(uint64_t offset, size_t size);
         void Unmap();

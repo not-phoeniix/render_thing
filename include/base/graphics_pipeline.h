@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include "graphics_context.h"
+#include "context_structs.h"
 
 namespace RenderThing {
     struct GraphicsPipelineCreateInfo {
@@ -27,7 +27,7 @@ namespace RenderThing {
         VkPipeline graphics_pipeline;
 
        public:
-        GraphicsPipeline(const GraphicsPipelineCreateInfo& create_info, const GraphicsContext& ctx);
+        GraphicsPipeline(const GraphicsPipelineCreateInfo& create_info, const ApiContext& a_ctx);
         ~GraphicsPipeline();
 
         VkPipelineLayout get_layout() const;

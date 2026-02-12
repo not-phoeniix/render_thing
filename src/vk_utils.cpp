@@ -48,16 +48,19 @@ namespace RenderThing::Utils {
         throw std::runtime_error("Failed to find any suitable memory type!");
     }
 
-    VkCommandBuffer begin_single_use_commands(const RenderThing::GraphicsContext& ctx) {
+    VkCommandBuffer begin_single_use_commands(
+        const GraphicsContext& g_ctx,
+        const ApiContext& a_ctx
+    ) {
         VkCommandBufferAllocateInfo alloc_info = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-            .commandPool = ctx.command_pool,
+            .commandPool = g_ctx.command_pool,
             .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
             .commandBufferCount = 1
         };
 
         VkCommandBuffer command_buffer;
-        vkAllocateCommandBuffers(ctx.device, &alloc_info, &command_buffer);
+        vkAllocateCommandBuffers(a_ctx.device, &alloc_info, &command_buffer);
 
         VkCommandBufferBeginInfo begin_info = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -71,7 +74,8 @@ namespace RenderThing::Utils {
 
     void end_single_use_commands(
         VkCommandBuffer command_buffer,
-        const RenderThing::GraphicsContext& ctx
+        const GraphicsContext& g_ctx,
+        const ApiContext& a_ctx
     ) {
         vkEndCommandBuffer(command_buffer);
 
@@ -81,11 +85,11 @@ namespace RenderThing::Utils {
             .pCommandBuffers = &command_buffer
         };
 
-        vkQueueSubmit(ctx.graphics_queue, 1, &submit_info, nullptr);
+        vkQueueSubmit(g_ctx.graphics_queue, 1, &submit_info, nullptr);
 
-        vkQueueWaitIdle(ctx.graphics_queue);
+        vkQueueWaitIdle(g_ctx.graphics_queue);
 
-        vkFreeCommandBuffers(ctx.device, ctx.command_pool, 1, &command_buffer);
+        vkFreeCommandBuffers(a_ctx.device, g_ctx.command_pool, 1, &command_buffer);
     }
 
     void transition_image_layout(
@@ -93,9 +97,10 @@ namespace RenderThing::Utils {
         VkFormat format,
         VkImageLayout prev_layout,
         VkImageLayout new_layout,
-        const RenderThing::GraphicsContext& ctx
+        const GraphicsContext& g_ctx,
+        const ApiContext& a_ctx
     ) {
-        VkCommandBuffer command_buffer = begin_single_use_commands(ctx);
+        VkCommandBuffer command_buffer = begin_single_use_commands(g_ctx, a_ctx);
 
         // use a barrier to transition layouts :D
         //   (these are typically used for synchronization stuff
@@ -193,11 +198,11 @@ namespace RenderThing::Utils {
             1, &barrier // IMAGE memory barriers :]
         );
 
-        end_single_use_commands(command_buffer, ctx);
+        end_single_use_commands(command_buffer, g_ctx, a_ctx);
     }
 
-    void copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, const RenderThing::GraphicsContext& ctx) {
-        VkCommandBuffer command_buffer = begin_single_use_commands(ctx);
+    void copy_buffer_to_image(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, const GraphicsContext& g_ctx, const ApiContext& a_ctx) {
+        VkCommandBuffer command_buffer = begin_single_use_commands(g_ctx, a_ctx);
 
         VkBufferImageCopy region = {
             .bufferOffset = 0,
@@ -222,7 +227,7 @@ namespace RenderThing::Utils {
             &region
         );
 
-        end_single_use_commands(command_buffer, ctx);
+        end_single_use_commands(command_buffer, g_ctx, a_ctx);
     }
 
     SwapChainSupportDetails query_swap_chain_support(VkPhysicalDevice device, VkSurfaceKHR surface) {
