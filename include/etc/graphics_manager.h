@@ -10,15 +10,21 @@
 #include "../base/base.h"
 #include "uniform.h"
 #include "swap_chain.h"
+#include "destruction_queue.h"
 
 namespace RenderThing {
     struct GraphicsManagerCreateInfo {
-        uint32_t frames_in_flight;
         VkClearValue clear_value;
         GLFWwindow* window;
         const InstanceCreateInfo& instance;
         const SwapChainCreateInfo& swap_chain;
-        // const GraphicsPipelineCreateInfo& graphics_pipeline;
+        const GraphicsPipelineCreateInfo& graphics_pipeline;
+    };
+
+    struct FrameData {
+        VkSemaphore image_available_semaphore;
+        VkFence in_flight_fence;
+        VkCommandBuffer command_buffer;
     };
 
     class GraphicsManager {
@@ -29,38 +35,31 @@ namespace RenderThing {
         VkSurfaceKHR surface;
         GLFWwindow* window;
 
+        SwapChainCreateInfo swap_chain_create_info;
         std::unique_ptr<SwapChain> swap_chain;
-        std::vector<VkSemaphore> image_available_sempahores;
         std::vector<VkSemaphore> render_finished_semaphores;
-        std::vector<VkFence> in_flight_fences;
+        std::vector<FrameData> frame_datas;
         bool framebuffer_resized;
 
-        VkRenderPass render_pass;
+        std::unique_ptr<RenderPass> render_pass;
         std::unique_ptr<GraphicsPipeline> pipeline;
 
-        VkDescriptorSetLayout descriptor_set_layout;
+        std::unique_ptr<DescriptorSetLayout> descriptor_set_layout;
         std::unique_ptr<DescriptorPool> descriptor_pool;
         std::vector<std::shared_ptr<Uniform>> uniforms;
 
         VkQueue graphics_queue;
         VkQueue present_queue;
         VkCommandPool command_pool;
-        std::vector<VkCommandBuffer> command_buffers;
         VkClearValue clear_value;
 
-        void PickPhysicalDevice();
-        void CreateLogicalDevice();
-        void CreateSurface();
+        DestructionQueue destruction_queue;
 
-        void CreateDescriptorSetLayout();
-        void CreateDescriptorPool();
-
-        void CreateRenderPass();
-        void CreateSwapChain();
-        void CreateGraphicsPipeline();
-        void CreateCommandPool();
-        void CreateCommandBuffers();
-        void CreateSyncObjects();
+        void CreateApiObjects(const GraphicsManagerCreateInfo& create_info);
+        void CreateDescriptors(const GraphicsManagerCreateInfo& create_info);
+        void CreateRenderObjects(const GraphicsManagerCreateInfo& create_info);
+        void CreateCommandPool(const GraphicsManagerCreateInfo& create_info);
+        void CreateSyncAndFrameData(const GraphicsManagerCreateInfo& create_info);
 
         void RecreateSwapChain();
 
@@ -70,10 +69,6 @@ namespace RenderThing {
 
         void Begin();
         void EndAndPresent();
-
-        std::shared_ptr<Uniform> MakeNewUniform(VkImageView image_view, VkSampler sampler);
-        void CmdBindUniform(std::shared_ptr<Uniform> uniform);
-        void CmdPushConstants(const void* data, size_t data_size, VkShaderStageFlags shader_stage, uint32_t offset);
 
         // getters/setters
 

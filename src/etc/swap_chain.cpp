@@ -5,10 +5,6 @@
 #include <stdexcept>
 #include <array>
 
-#pragma region // helpers
-
-#pragma endregion
-
 namespace RenderThing {
     void SwapChain::CreateSwapChain(const SwapChainCreateInfo& create_info, const ApiContext& a_ctx) {
         SwapChainSupportDetails details = Utils::query_swap_chain_support(a_ctx.physical_device, a_ctx.surface);
@@ -195,6 +191,7 @@ namespace RenderThing {
     VkFormat SwapChain::get_image_format() const { return image_format; }
     VkFormat SwapChain::get_depth_format() const { return depth_image->get_format(); }
     uint32_t SwapChain::get_image_count() const { return static_cast<uint32_t>(images.size()); }
+    uint32_t SwapChain::get_frame_flight_count() const { return frame_flight_count; }
     VkSwapchainKHR SwapChain::get_swap_chain() const { return swap_chain; }
     VkFramebuffer SwapChain::get_current_framebuffer() const { return framebuffers[image_index]; }
 }

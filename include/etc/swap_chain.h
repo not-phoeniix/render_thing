@@ -47,6 +47,7 @@ namespace RenderThing {
         VkFormat get_image_format() const;
         VkFormat get_depth_format() const;
         uint32_t get_image_count() const;
+        uint32_t get_frame_flight_count() const;
         VkSwapchainKHR get_swap_chain() const;
         VkFramebuffer get_current_framebuffer() const;
     };
