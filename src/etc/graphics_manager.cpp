@@ -43,7 +43,6 @@ namespace RenderThing {
     }
 
     GraphicsManager::~GraphicsManager() {
-        uniforms.clear();
         destruction_queue.Flush();
     }
 
@@ -437,8 +436,8 @@ namespace RenderThing {
 
         // ~~~ viewports and scissors ~~~
 
-        //* viewports/scissors are created dynamically!
-        //*   as per dynamic states defined above <3
+        // viewports/scissors are created dynamically!
+        //   as per dynamic states defined above <3
 
         // these will be set later before drawing!
         VkPipelineViewportStateCreateInfo viewport_create_info = {
@@ -732,9 +731,6 @@ namespace RenderThing {
         }
 
         swap_chain->NextFrame();
-        for (size_t i = 0; i < uniforms.size(); i++) {
-            uniforms[i]->NextIndex();
-        }
     }
 
     VkCommandBuffer GraphicsManager::get_command_buffer() const { return frame_datas[swap_chain->get_frame_index()].command_buffer; }

@@ -46,7 +46,6 @@ namespace RenderThing {
 
         std::unique_ptr<DescriptorSetLayout> descriptor_set_layout;
         std::unique_ptr<DescriptorPool> descriptor_pool;
-        std::vector<std::shared_ptr<Uniform>> uniforms;
 
         VkQueue graphics_queue;
         VkQueue present_queue;
