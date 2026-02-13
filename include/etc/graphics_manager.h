@@ -4,11 +4,7 @@
 #include <vector>
 #include <GLFW/glfw3.h>
 #include <memory>
-#include "../uniform_buffer_object.h"
-#include "../camera_push_constants.h"
-#include "../pixel_push_constants.h"
 #include "../base/base.h"
-#include "uniform.h"
 #include "swap_chain.h"
 #include "destruction_queue.h"
 
@@ -44,9 +40,6 @@ namespace RenderThing {
         std::unique_ptr<RenderPass> render_pass;
         std::unique_ptr<GraphicsPipeline> pipeline;
 
-        std::unique_ptr<DescriptorSetLayout> descriptor_set_layout;
-        std::unique_ptr<DescriptorPool> descriptor_pool;
-
         VkQueue graphics_queue;
         VkQueue present_queue;
         VkCommandPool command_pool;
@@ -55,7 +48,6 @@ namespace RenderThing {
         DestructionQueue destruction_queue;
 
         void CreateApiObjects(const GraphicsManagerCreateInfo& create_info);
-        void CreateDescriptors(const GraphicsManagerCreateInfo& create_info);
         void CreateRenderObjects(const GraphicsManagerCreateInfo& create_info);
         void CreateCommandPool(const GraphicsManagerCreateInfo& create_info);
         void CreateSyncAndFrameData(const GraphicsManagerCreateInfo& create_info);

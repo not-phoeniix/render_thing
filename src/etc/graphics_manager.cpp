@@ -9,15 +9,9 @@
 #include <limits>
 #include <algorithm>
 #include "../shader_helper.h"
-#include "vertex.h"
 #include "vk_utils.h"
 
-constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
-constexpr uint32_t MAX_NUM_UNIFORMS = 20000;
 constexpr bool ENABLE_VALIDATION_LAYERS = true;
-const std::vector<const char*> VALIDATION_LAYERS = {
-    "VK_LAYER_KHRONOS_validation"
-};
 const std::vector<const char*> DEVICE_EXTENSIONS = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
@@ -36,7 +30,6 @@ namespace RenderThing {
         glfwSetWindowUserPointer(window, this);
         glfwSetFramebufferSizeCallback(window, framebuffer_resize_callback);
         CreateApiObjects(create_info);
-        CreateDescriptors(create_info);
         CreateRenderObjects(create_info);
         CreateCommandPool(create_info);
         CreateSyncAndFrameData(create_info);
@@ -125,8 +118,8 @@ namespace RenderThing {
             //   instance validation layers kinda replaced everything
             //   else but we keep it just to be compatible for old versions
             if (ENABLE_VALIDATION_LAYERS) {
-                device_create_info.enabledLayerCount = static_cast<uint32_t>(VALIDATION_LAYERS.size());
-                device_create_info.ppEnabledLayerNames = VALIDATION_LAYERS.data();
+                device_create_info.enabledLayerCount = create_info.instance.validation_layer_count;
+                device_create_info.ppEnabledLayerNames = create_info.instance.validation_layers;
             }
 
             if (vkCreateDevice(physical_device, &device_create_info, nullptr, &device) != VK_SUCCESS) {
@@ -138,63 +131,6 @@ namespace RenderThing {
             vkGetDeviceQueue(device, indices.present.value(), 0, &present_queue);
         }
         destruction_queue.QueueDelete([this] { vkDestroyDevice(device, nullptr); });
-    }
-
-    void GraphicsManager::CreateDescriptors(const GraphicsManagerCreateInfo& create_info) {
-        // create layout
-        {
-            std::vector<VkDescriptorSetLayoutBinding> bindings = {
-                (VkDescriptorSetLayoutBinding) {
-                    .binding = 0,
-                    .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                    // THIS REPRESENTS NUMBER OF VALUES IN A POSSIBLE UBO ARRAY...
-                    //   TODO: change this later so we can pass in a ton of matrix data
-                    .descriptorCount = 1,
-                    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-                    .pImmutableSamplers = nullptr
-                },
-                (VkDescriptorSetLayoutBinding) {
-                    .binding = 1,
-                    .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                    .descriptorCount = 1,
-                    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-                    .pImmutableSamplers = nullptr
-                }
-            };
-
-            DescriptorSetLayoutCreateInfo create_info = {
-                .bindings = bindings.data(),
-                .binding_count = static_cast<uint32_t>(bindings.size())
-            };
-
-            descriptor_set_layout = std::make_unique<DescriptorSetLayout>(create_info, get_api_context());
-        }
-        destruction_queue.QueueDelete([this] { descriptor_set_layout.reset(); });
-
-        // create pool
-        {
-            std::array<VkDescriptorPoolSize, 2> pool_sizes = {
-                (VkDescriptorPoolSize) {
-                    .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                    // TODO: change the descriptor count to less than this
-                    //   see what happens if it doesn't match the maxSets below !
-                    .descriptorCount = MAX_NUM_UNIFORMS * MAX_FRAMES_IN_FLIGHT
-                },
-                (VkDescriptorPoolSize) {
-                    .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                    .descriptorCount = MAX_NUM_UNIFORMS * MAX_FRAMES_IN_FLIGHT
-                },
-            };
-
-            DescriptorPoolCreateInfo create_info = {
-                .max_sets = MAX_NUM_UNIFORMS * MAX_FRAMES_IN_FLIGHT,
-                .pool_sizes = pool_sizes.data(),
-                .pool_size_count = static_cast<uint32_t>(pool_sizes.size()),
-            };
-
-            descriptor_pool = std::make_unique<DescriptorPool>(create_info, get_api_context());
-        }
-        destruction_queue.QueueDelete([this] { descriptor_pool.reset(); });
     }
 
     void GraphicsManager::CreateRenderObjects(const GraphicsManagerCreateInfo& create_info) {
