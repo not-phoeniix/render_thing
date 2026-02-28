@@ -9,9 +9,15 @@ namespace RenderThing {
     void SwapChain::CreateSwapChain(const SwapChainCreateInfo& create_info, const ApiContext& a_ctx) {
         SwapChainSupportDetails details = Utils::query_swap_chain_support(a_ctx.physical_device, a_ctx.surface);
 
-        // VkSurfaceFormatKHR surface_format = choose_swap_surface_format(details.formats);
-        // VkPresentModeKHR present_mode = choose_swap_present_mode(details.present_modes);
-        // VkExtent2D extent = choose_swap_extent(details.capabilities, ctx.window);
+        VkSurfaceFormatKHR surface_format = create_info.surface_format.value_or(
+            Utils::choose_swap_surface_format(details.formats)
+        );
+        VkPresentModeKHR present_mode = create_info.present_mode.value_or(
+            Utils::choose_swap_present_mode(details.present_modes)
+        );
+        VkExtent2D extent = create_info.extent.value_or(
+            Utils::choose_swap_extent(details.capabilities, a_ctx.window)
+        );
 
         uint32_t image_count = details.capabilities.minImageCount + (create_info.frame_flight_count - 1);
         if (details.capabilities.maxImageCount > 0 && image_count > details.capabilities.maxImageCount) {
@@ -23,15 +29,15 @@ namespace RenderThing {
             .surface = a_ctx.surface,
             // image info
             .minImageCount = image_count,
-            .imageFormat = create_info.surface_format.format,
-            .imageColorSpace = create_info.surface_format.colorSpace,
+            .imageFormat = surface_format.format,
+            .imageColorSpace = surface_format.colorSpace,
             .imageExtent = extent,
             .imageArrayLayers = 1,
             .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
             // misc info about behavior
             .preTransform = details.capabilities.currentTransform,
             .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
-            .presentMode = create_info.present_mode,
+            .presentMode = present_mode,
             .clipped = VK_TRUE,
             .oldSwapchain = nullptr
         };
@@ -65,7 +71,7 @@ namespace RenderThing {
         images.resize(image_count);
         vkGetSwapchainImagesKHR(a_ctx.device, swap_chain, &image_count, images.data());
 
-        image_format = create_info.surface_format.format;
+        this->image_format = surface_format.format;
         this->extent = extent;
     }
 
@@ -103,7 +109,9 @@ namespace RenderThing {
         ImageCreateInfo image_create_info = {
             .width = extent.width,
             .height = extent.height,
-            .format = create_info.depth_format,
+            .format = create_info.depth_format.value_or(
+                Utils::find_depth_format(a_ctx.physical_device)
+            ),
             .tiling = VK_IMAGE_TILING_OPTIMAL,
             .image_usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
             .memory_properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -140,7 +148,6 @@ namespace RenderThing {
 
     SwapChain::SwapChain(const SwapChainCreateInfo& create_info, const GraphicsContext& g_ctx, const ApiContext& a_ctx)
       : device(a_ctx.device),
-        extent(create_info.extent),
         frame_flight_count(create_info.frame_flight_count),
         image_index(0),
         frame_flight_index(0) {

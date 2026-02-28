@@ -4,14 +4,15 @@
 #include <vector>
 #include <memory>
 #include "../base/base.h"
+#include <optional>
 
 namespace RenderThing {
     struct SwapChainCreateInfo {
-        VkFormat depth_format;
-        VkSurfaceFormatKHR surface_format;
-        VkPresentModeKHR present_mode;
         uint32_t frame_flight_count;
-        VkExtent2D extent;
+        std::optional<VkFormat> depth_format;
+        std::optional<VkSurfaceFormatKHR> surface_format;
+        std::optional<VkPresentModeKHR> present_mode;
+        std::optional<VkExtent2D> extent;
         VkRenderPass render_pass;
     };
 

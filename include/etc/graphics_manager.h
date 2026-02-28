@@ -7,12 +7,13 @@
 #include "../base/base.h"
 #include "swap_chain.h"
 #include "destruction_queue.h"
+#include "api_cluster.h"
 
 namespace RenderThing {
     struct GraphicsManagerCreateInfo {
         VkClearValue clear_value;
         GLFWwindow* window;
-        const InstanceCreateInfo& instance;
+        std::shared_ptr<ApiCluster> api_cluster;
         const SwapChainCreateInfo& swap_chain;
         const GraphicsPipelineCreateInfo& graphics_pipeline;
     };
@@ -25,11 +26,8 @@ namespace RenderThing {
 
     class GraphicsManager {
        private:
-        std::unique_ptr<Instance> instance;
-        VkPhysicalDevice physical_device;
+        std::shared_ptr<ApiCluster> api_cluster;
         VkDevice device;
-        VkSurfaceKHR surface;
-        GLFWwindow* window;
 
         SwapChainCreateInfo swap_chain_create_info;
         std::unique_ptr<SwapChain> swap_chain;
@@ -47,7 +45,6 @@ namespace RenderThing {
 
         DestructionQueue destruction_queue;
 
-        void CreateApiObjects(const GraphicsManagerCreateInfo& create_info);
         void CreateRenderObjects(const GraphicsManagerCreateInfo& create_info);
         void CreateCommandPool(const GraphicsManagerCreateInfo& create_info);
         void CreateSyncAndFrameData(const GraphicsManagerCreateInfo& create_info);

@@ -12,9 +12,6 @@
 #include "vk_utils.h"
 
 constexpr bool ENABLE_VALIDATION_LAYERS = true;
-const std::vector<const char*> DEVICE_EXTENSIONS = {
-    VK_KHR_SWAPCHAIN_EXTENSION_NAME
-};
 
 static void framebuffer_resize_callback(GLFWwindow* window, int width, int height) {
     auto manager = reinterpret_cast<RenderThing::GraphicsManager*>(glfwGetWindowUserPointer(window));
@@ -23,13 +20,12 @@ static void framebuffer_resize_callback(GLFWwindow* window, int width, int heigh
 
 namespace RenderThing {
     GraphicsManager::GraphicsManager(const GraphicsManagerCreateInfo& create_info)
-      : physical_device(nullptr),
-        window(create_info.window),
+      : api_cluster(create_info.api_cluster),
+        device(api_cluster->get_device()),
         framebuffer_resized(false),
         clear_value(create_info.clear_value) {
-        glfwSetWindowUserPointer(window, this);
-        glfwSetFramebufferSizeCallback(window, framebuffer_resize_callback);
-        CreateApiObjects(create_info);
+        glfwSetWindowUserPointer(create_info.window, this);
+        glfwSetFramebufferSizeCallback(create_info.window, framebuffer_resize_callback);
         CreateRenderObjects(create_info);
         CreateCommandPool(create_info);
         CreateSyncAndFrameData(create_info);
@@ -39,105 +35,22 @@ namespace RenderThing {
         destruction_queue.Flush();
     }
 
-    void GraphicsManager::CreateApiObjects(const GraphicsManagerCreateInfo& create_info) {
-        // create instance
-        instance = std::make_unique<Instance>(create_info.instance);
-        destruction_queue.QueueDelete([this] { instance.reset(); });
-
-        // create window surface
-        if (glfwCreateWindowSurface(instance->get_instance(), window, nullptr, &surface) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to create window surface!");
-        }
-        destruction_queue.QueueDelete([this] {
-            vkDestroySurfaceKHR(instance->get_instance(), surface, nullptr);
-        });
-
-        // pick physical device
-        {
-            uint32_t device_count = 0;
-            vkEnumeratePhysicalDevices(instance->get_instance(), &device_count, nullptr);
-
-            if (device_count == 0) {
-                throw std::runtime_error("Failed to find GPUs with Vulkan support!");
-            }
-
-            std::vector<VkPhysicalDevice> devices(device_count);
-            vkEnumeratePhysicalDevices(instance->get_instance(), &device_count, devices.data());
-
-            for (const auto& device : devices) {
-                if (Utils::is_device_suitable(device, surface, DEVICE_EXTENSIONS.data(), DEVICE_EXTENSIONS.size())) {
-                    physical_device = device;
-                    break;
-                }
-            }
-
-            if (physical_device == nullptr) {
-                throw std::runtime_error("Failed to find a suitable GPU!");
-            }
-        }
-
-        // create logical device
-        {
-            QueueFamilyIndices indices = Utils::find_queue_families(physical_device, surface);
-
-            std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
-            // we use a set so we dont have duplicate indices <3
-            std::set<uint32_t> unique_queue_families = {
-                indices.graphics.value(),
-                indices.present.value()
-            };
-
-            // priorities are used to influence scheduling order, inchresting
-            float queue_priority = 1.0f;
-            for (uint32_t family_index : unique_queue_families) {
-                VkDeviceQueueCreateInfo queue_create_info = {
-                    .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-                    .queueFamilyIndex = family_index,
-                    .queueCount = 1,
-                    .pQueuePriorities = &queue_priority
-                };
-
-                queue_create_infos.push_back(queue_create_info);
-            }
-
-            VkPhysicalDeviceFeatures device_features = {
-                .samplerAnisotropy = VK_TRUE
-            };
-
-            VkDeviceCreateInfo device_create_info = {
-                .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-                .queueCreateInfoCount = static_cast<uint32_t>(queue_create_infos.size()),
-                .pQueueCreateInfos = queue_create_infos.data(),
-                .enabledLayerCount = 0,
-                .enabledExtensionCount = static_cast<uint32_t>(DEVICE_EXTENSIONS.size()),
-                .ppEnabledExtensionNames = DEVICE_EXTENSIONS.data(),
-                .pEnabledFeatures = &device_features,
-            };
-
-            // we don't rlly need this with newer versions of vulkan since
-            //   instance validation layers kinda replaced everything
-            //   else but we keep it just to be compatible for old versions
-            if (ENABLE_VALIDATION_LAYERS) {
-                device_create_info.enabledLayerCount = create_info.instance.validation_layer_count;
-                device_create_info.ppEnabledLayerNames = create_info.instance.validation_layers;
-            }
-
-            if (vkCreateDevice(physical_device, &device_create_info, nullptr, &device) != VK_SUCCESS) {
-                throw std::runtime_error("Failed to create logical device!");
-            }
-
-            // aaaaand store the queues from the device we just created :D
-            vkGetDeviceQueue(device, indices.graphics.value(), 0, &graphics_queue);
-            vkGetDeviceQueue(device, indices.present.value(), 0, &present_queue);
-        }
-        destruction_queue.QueueDelete([this] { vkDestroyDevice(device, nullptr); });
-    }
-
     void GraphicsManager::CreateRenderObjects(const GraphicsManagerCreateInfo& create_info) {
         // create render pass
         {
+            SwapChainSupportDetails details = Utils::query_swap_chain_support(
+                api_cluster->get_physical_device(),
+                api_cluster->get_surface()
+            );
+            VkSurfaceFormatKHR surface_format = create_info.swap_chain.surface_format.value_or(
+                Utils::choose_swap_surface_format(details.formats)
+            );
+            VkFormat depth_format = create_info.swap_chain.depth_format.value_or(
+                Utils::find_depth_format(api_cluster->get_physical_device())
+            );
+
             VkAttachmentDescription color_attachment = {
-                .format = create_info.swap_chain.surface_format.format,
+                .format = surface_format.format,
                 .samples = VK_SAMPLE_COUNT_1_BIT,
                 .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
                 .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -153,7 +66,7 @@ namespace RenderThing {
             };
 
             VkAttachmentDescription depth_attachment = {
-                .format = create_info.swap_chain.depth_format,
+                .format = depth_format,
                 .samples = VK_SAMPLE_COUNT_1_BIT,
                 .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
                 .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
@@ -222,7 +135,10 @@ namespace RenderThing {
     }
 
     void GraphicsManager::CreateCommandPool(const GraphicsManagerCreateInfo& create_info) {
-        QueueFamilyIndices indices = Utils::find_queue_families(physical_device, surface);
+        QueueFamilyIndices indices = Utils::find_queue_families(
+            api_cluster->get_physical_device(),
+            api_cluster->get_surface()
+        );
 
         VkCommandPoolCreateInfo pool_info = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -503,9 +419,9 @@ namespace RenderThing {
         // handle minimization (when dimensions are zero)
         int width = 0;
         int height = 0;
-        glfwGetFramebufferSize(window, &width, &height);
+        glfwGetFramebufferSize(api_cluster->get_window(), &width, &height);
         while (width == 0 || height == 0) {
-            glfwGetFramebufferSize(window, &width, &height);
+            glfwGetFramebufferSize(api_cluster->get_window(), &width, &height);
             glfwWaitEvents();
         }
 
@@ -513,8 +429,10 @@ namespace RenderThing {
 
         swap_chain.reset();
 
-        swap_chain_create_info.extent.width = static_cast<uint32_t>(width);
-        swap_chain_create_info.extent.height = static_cast<uint32_t>(height);
+        swap_chain_create_info.extent = {
+            static_cast<uint32_t>(width),
+            static_cast<uint32_t>(height)
+        };
         swap_chain = std::make_unique<SwapChain>(
             swap_chain_create_info,
             get_graphics_context(),
@@ -670,24 +588,12 @@ namespace RenderThing {
     }
 
     VkCommandBuffer GraphicsManager::get_command_buffer() const { return frame_datas[swap_chain->get_frame_index()].command_buffer; }
-    VkDevice GraphicsManager::get_device() const { return device; }
-    VkPhysicalDevice GraphicsManager::get_physical_device() const { return physical_device; }
     VkClearValue GraphicsManager::get_clear_value() const { return clear_value; }
     VkCommandPool GraphicsManager::get_command_pool() const { return command_pool; }
     VkQueue GraphicsManager::get_graphics_queue() const { return graphics_queue; }
     VkQueue GraphicsManager::get_present_queue() const { return present_queue; }
     VkExtent2D GraphicsManager::get_swapchain_extent() const { return swap_chain->get_extent(); }
-    ApiContext GraphicsManager::get_api_context() const {
-        ApiContext ctx = {
-            .instance = instance->get_instance(),
-            .device = device,
-            .physical_device = physical_device,
-            .window = window,
-            .surface = surface
-        };
-
-        return ctx;
-    }
+    ApiContext GraphicsManager::get_api_context() const { return api_cluster->get_api_context(); }
     GraphicsContext GraphicsManager::get_graphics_context() const {
         uint32_t i = 0;
         if (swap_chain != nullptr) {
