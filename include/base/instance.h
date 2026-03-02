@@ -2,7 +2,7 @@
 
 #include <vulkan/vulkan.h>
 
-namespace RenderThing {
+namespace rt {
     struct InstanceCreateInfo {
         const char* app_name;
         uint32_t app_version;

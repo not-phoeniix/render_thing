@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <GLFW/glfw3.h>
 
-RenderThing::Instance::Instance(const InstanceCreateInfo& create_info) {
+rt::Instance::Instance(const InstanceCreateInfo& create_info) {
     VkApplicationInfo app_info = {
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
         .pApplicationName = create_info.app_name,
@@ -89,8 +89,8 @@ RenderThing::Instance::Instance(const InstanceCreateInfo& create_info) {
     }
 }
 
-RenderThing::Instance::~Instance() {
+rt::Instance::~Instance() {
     vkDestroyInstance(instance, nullptr);
 }
 
-VkInstance RenderThing::Instance::get_instance() const { return instance; }
+VkInstance rt::Instance::get_instance() const { return instance; }

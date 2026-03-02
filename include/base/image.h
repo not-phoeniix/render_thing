@@ -3,7 +3,7 @@
 #include <vulkan/vulkan.h>
 #include "context_structs.h"
 
-namespace RenderThing {
+namespace rt {
     struct ImageCreateInfo {
         uint32_t width;
         uint32_t height;

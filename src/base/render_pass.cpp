@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-namespace RenderThing {
+namespace rt {
     RenderPass::RenderPass(const RenderPassCreateInfo& create_info, const ApiContext& a_ctx)
       : device(a_ctx.device) {
         VkRenderPassCreateInfo subpass_info = {

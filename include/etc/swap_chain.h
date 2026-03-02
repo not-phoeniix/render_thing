@@ -6,7 +6,7 @@
 #include "../base/base.h"
 #include <optional>
 
-namespace RenderThing {
+namespace rt {
     struct SwapChainCreateInfo {
         uint32_t frame_flight_count;
         std::optional<VkFormat> depth_format;

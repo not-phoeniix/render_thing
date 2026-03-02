@@ -8,7 +8,7 @@ const std::vector<const char*> DEVICE_EXTENSIONS = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
-namespace RenderThing {
+namespace rt {
     ApiCluster::ApiCluster(const ApiClusterCreateInfo& create_info)
       : window(create_info.window) {
         // create instance

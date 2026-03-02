@@ -5,7 +5,7 @@
 #include "base/context_structs.h"
 #include <optional>
 
-namespace RenderThing {
+namespace rt {
     struct SwapChainSupportDetails {
         VkSurfaceCapabilitiesKHR capabilities;
         std::vector<VkSurfaceFormatKHR> formats;

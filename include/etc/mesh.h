@@ -4,7 +4,7 @@
 #include <memory>
 #include "../base/base.h"
 
-namespace RenderThing {
+namespace rt {
     struct MeshCreateInfo {
         const void* vertices;
         size_t vertex_size;

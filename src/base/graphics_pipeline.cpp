@@ -1,7 +1,7 @@
 #include "base/graphics_pipeline.h"
 #include <stdexcept>
 
-namespace RenderThing {
+namespace rt {
     GraphicsPipeline::GraphicsPipeline(const GraphicsPipelineCreateInfo& create_info, const ApiContext& a_ctx)
       : device(a_ctx.device) {
         if (vkCreatePipelineLayout(a_ctx.device, create_info.layout_create_info, nullptr, &pipeline_layout) != VK_SUCCESS) {

@@ -1,6 +1,6 @@
 #include "etc/destruction_queue.h"
 
-namespace RenderThing {
+namespace rt {
     DestructionQueue::DestructionQueue() { }
 
     DestructionQueue::~DestructionQueue() {

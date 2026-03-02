@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-namespace RenderThing {
+namespace rt {
     DescriptorSetLayout::DescriptorSetLayout(
         const DescriptorSetLayoutCreateInfo& create_info,
         const ApiContext& a_ctx

@@ -3,7 +3,7 @@
 #include <vulkan/vulkan.h>
 #include "context_structs.h"
 
-namespace RenderThing {
+namespace rt {
     struct RenderPassCreateInfo {
         const VkAttachmentDescription* attachments;
         uint32_t attachment_count;

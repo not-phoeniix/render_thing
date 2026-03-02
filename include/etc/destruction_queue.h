@@ -3,7 +3,7 @@
 #include <deque>
 #include <functional>
 
-namespace RenderThing {
+namespace rt {
     class DestructionQueue {
        private:
         std::deque<std::function<void()>> queue;

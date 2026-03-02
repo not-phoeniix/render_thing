@@ -14,11 +14,11 @@
 constexpr bool ENABLE_VALIDATION_LAYERS = true;
 
 static void framebuffer_resize_callback(GLFWwindow* window, int width, int height) {
-    auto manager = reinterpret_cast<RenderThing::GraphicsManager*>(glfwGetWindowUserPointer(window));
+    auto manager = reinterpret_cast<rt::GraphicsManager*>(glfwGetWindowUserPointer(window));
     manager->mark_resized();
 }
 
-namespace RenderThing {
+namespace rt {
     GraphicsManager::GraphicsManager(const GraphicsManagerCreateInfo& create_info)
       : api_cluster(create_info.api_cluster),
         device(api_cluster->get_device()),

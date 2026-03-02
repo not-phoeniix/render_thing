@@ -3,7 +3,7 @@
 #include <vulkan/vulkan.h>
 #include "context_structs.h"
 
-namespace RenderThing {
+namespace rt {
     struct GraphicsPipelineCreateInfo {
         VkPipelineShaderStageCreateInfo* shader_stages;
         uint32_t shader_stage_count;

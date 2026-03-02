@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-namespace RenderThing {
+namespace rt {
     DescriptorPool::DescriptorPool(const DescriptorPoolCreateInfo& create_info, const ApiContext& a_ctx)
       : device(a_ctx.device) {
         VkDescriptorPoolCreateInfo pool_info = {

@@ -4,7 +4,7 @@
 #include "vk_utils.h"
 #include "base/buffer.h"
 
-namespace RenderThing {
+namespace rt {
     void Image::CreateImage(const ImageCreateInfo& create_info, const ApiContext& a_ctx) {
         VkImageCreateInfo image_create_info = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,

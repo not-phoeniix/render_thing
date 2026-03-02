@@ -3,7 +3,7 @@
 #include <cstring>
 #include "vk_utils.h"
 
-namespace RenderThing {
+namespace rt {
     Buffer::Buffer(const BufferCreateInfo& create_info, const ApiContext& a_ctx)
       : device(a_ctx.device),
         mapped(nullptr),

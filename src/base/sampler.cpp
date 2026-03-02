@@ -1,7 +1,7 @@
 #include "base/sampler.h"
 #include <stdexcept>
 
-namespace RenderThing {
+namespace rt {
     Sampler::Sampler(const SamplerCreateInfo& create_info, const ApiContext& a_ctx)
       : device(a_ctx.device) {
         VkPhysicalDeviceProperties properties;

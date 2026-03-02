@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <array>
 
-namespace RenderThing {
+namespace rt {
     void SwapChain::CreateSwapChain(const SwapChainCreateInfo& create_info, const ApiContext& a_ctx) {
         SwapChainSupportDetails details = Utils::query_swap_chain_support(a_ctx.physical_device, a_ctx.surface);
 

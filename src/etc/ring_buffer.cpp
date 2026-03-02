@@ -2,7 +2,7 @@
 #include <array>
 #include <stdexcept>
 
-namespace RenderThing {
+namespace rt {
     RingBuffer::RingBuffer(const RingBufferCreateInfo& create_info, const ApiContext& a_ctx)
       : device(a_ctx.device),
         descriptor_type(create_info.descriptor_type),

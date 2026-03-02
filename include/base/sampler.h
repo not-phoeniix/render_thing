@@ -3,7 +3,7 @@
 #include <vulkan/vulkan.h>
 #include "context_structs.h"
 
-namespace RenderThing {
+namespace rt {
     struct SamplerCreateInfo {
         VkFilter min_filter;
         VkFilter mag_filter;

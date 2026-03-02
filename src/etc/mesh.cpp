@@ -1,6 +1,6 @@
 #include "etc/mesh.h"
 
-namespace RenderThing {
+namespace rt {
     Mesh::Mesh(const MeshCreateInfo& create_info, const GraphicsContext& g_ctx, const ApiContext& a_ctx)
       : device(a_ctx.device),
         num_vertices(create_info.num_vertices),

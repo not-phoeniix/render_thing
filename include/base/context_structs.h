@@ -3,7 +3,7 @@
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 
-namespace RenderThing {
+namespace rt {
     struct ApiContext {
         VkInstance instance;
         VkDevice device;

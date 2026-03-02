@@ -6,7 +6,7 @@
 #include "../base/context_structs.h"
 #include <GLFW/glfw3.h>
 
-namespace RenderThing {
+namespace rt {
     struct ApiClusterCreateInfo {
         const InstanceCreateInfo& instance;
         GLFWwindow* window;

@@ -5,7 +5,7 @@
 #include <memory>
 #include <vector>
 
-namespace RenderThing {
+namespace rt {
     struct RingBufferCreateInfo {
         size_t element_size;
         uint32_t max_elements;

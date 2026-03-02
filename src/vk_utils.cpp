@@ -5,7 +5,7 @@
 #include <limits>
 #include <algorithm>
 
-namespace RenderThing::Utils {
+namespace rt::Utils {
     VkFormat find_supported_format(
         const std::vector<VkFormat>& candidates,
         VkImageTiling tiling,
@@ -307,13 +307,13 @@ namespace RenderThing::Utils {
     }
 
     bool is_device_suitable(VkPhysicalDevice device, VkSurfaceKHR surface, const char* const* extensions, uint32_t extension_count) {
-        RenderThing::QueueFamilyIndices indices = RenderThing::Utils::find_queue_families(device, surface);
+        rt::QueueFamilyIndices indices = rt::Utils::find_queue_families(device, surface);
 
         bool extensions_supported = check_device_extension_support(device, extensions, extension_count);
 
         bool swap_chain_adequate = false;
         if (extensions_supported) {
-            RenderThing::SwapChainSupportDetails details = RenderThing::Utils::query_swap_chain_support(device, surface);
+            rt::SwapChainSupportDetails details = rt::Utils::query_swap_chain_support(device, surface);
             swap_chain_adequate = !details.formats.empty() && !details.present_modes.empty();
         }
 

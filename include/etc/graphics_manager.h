@@ -9,7 +9,7 @@
 #include "destruction_queue.h"
 #include "api_cluster.h"
 
-namespace RenderThing {
+namespace rt {
     struct GraphicsManagerCreateInfo {
         VkClearValue clear_value;
         GLFWwindow* window;
