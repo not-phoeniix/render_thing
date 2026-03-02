@@ -9,7 +9,8 @@ const std::vector<const char*> DEVICE_EXTENSIONS = {
 };
 
 namespace RenderThing {
-    ApiCluster::ApiCluster(const ApiClusterCreateInfo& create_info) {
+    ApiCluster::ApiCluster(const ApiClusterCreateInfo& create_info)
+      : window(create_info.window) {
         // create instance
         instance = std::make_unique<Instance>(create_info.instance);
 

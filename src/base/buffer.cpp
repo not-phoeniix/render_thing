@@ -57,7 +57,7 @@ namespace RenderThing {
         Unmap();
     }
 
-    void Buffer::CopyFromHost(const void* data, size_t size) {
+    void Buffer::CopyFromHost(const void* data, size_t size, uint64_t offset) {
         if (
             (memory_properties & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) == 0 ||
             (memory_properties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == 0
@@ -69,7 +69,11 @@ namespace RenderThing {
             throw std::runtime_error("Failed to copy data, buffer was never mapped!");
         }
 
-        memcpy(mapped, data, size);
+        memcpy(
+            reinterpret_cast<void*>(reinterpret_cast<uint8_t*>(mapped) + offset),
+            data,
+            size
+        );
     }
 
     void Buffer::CopyFromBuffer(const Buffer& src, const GraphicsContext& g_ctx, const ApiContext& a_ctx) {

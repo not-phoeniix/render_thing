@@ -30,13 +30,13 @@ namespace RenderThing {
         VkDevice device;
 
         SwapChainCreateInfo swap_chain_create_info;
-        std::unique_ptr<SwapChain> swap_chain;
+        std::shared_ptr<SwapChain> swap_chain;
         std::vector<VkSemaphore> render_finished_semaphores;
         std::vector<FrameData> frame_datas;
         bool framebuffer_resized;
 
-        std::unique_ptr<RenderPass> render_pass;
-        std::unique_ptr<GraphicsPipeline> pipeline;
+        std::shared_ptr<RenderPass> render_pass;
+        std::shared_ptr<GraphicsPipeline> pipeline;
 
         VkQueue graphics_queue;
         VkQueue present_queue;
@@ -45,9 +45,10 @@ namespace RenderThing {
 
         DestructionQueue destruction_queue;
 
-        void CreateRenderObjects(const GraphicsManagerCreateInfo& create_info);
         void CreateCommandPool(const GraphicsManagerCreateInfo& create_info);
-        void CreateSyncAndFrameData(const GraphicsManagerCreateInfo& create_info);
+        void CreateFrameDataAndCommandBuffers(const GraphicsManagerCreateInfo& create_info);
+        void CreateRenderObjects(const GraphicsManagerCreateInfo& create_info);
+        void CreateSyncObjects(const GraphicsManagerCreateInfo& create_info);
 
         void RecreateSwapChain();
 
@@ -63,6 +64,9 @@ namespace RenderThing {
         VkCommandBuffer get_command_buffer() const;
         VkDevice get_device() const;
         VkPhysicalDevice get_physical_device() const;
+        std::shared_ptr<RenderPass> get_render_pass() const;
+        std::shared_ptr<GraphicsPipeline> get_graphics_pipeline() const;
+        std::shared_ptr<SwapChain> get_swap_chain() const;
         VkClearValue get_clear_value() const;
         VkCommandPool get_command_pool() const;
         VkQueue get_graphics_queue() const;

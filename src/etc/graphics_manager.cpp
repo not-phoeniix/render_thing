@@ -24,11 +24,15 @@ namespace RenderThing {
         device(api_cluster->get_device()),
         framebuffer_resized(false),
         clear_value(create_info.clear_value) {
+        api_cluster->get_queues(&graphics_queue, &present_queue);
+
         glfwSetWindowUserPointer(create_info.window, this);
         glfwSetFramebufferSizeCallback(create_info.window, framebuffer_resize_callback);
-        CreateRenderObjects(create_info);
+
         CreateCommandPool(create_info);
-        CreateSyncAndFrameData(create_info);
+        CreateFrameDataAndCommandBuffers(create_info);
+        CreateRenderObjects(create_info);
+        CreateSyncObjects(create_info);
     }
 
     GraphicsManager::~GraphicsManager() {
@@ -111,7 +115,7 @@ namespace RenderThing {
                 .dependency_count = 1
             };
 
-            render_pass = std::make_unique<RenderPass>(render_pass_info, get_api_context());
+            render_pass = std::make_shared<RenderPass>(render_pass_info, get_api_context());
         }
         destruction_queue.QueueDelete([this] { render_pass.reset(); });
 
@@ -119,7 +123,7 @@ namespace RenderThing {
         {
             swap_chain_create_info = create_info.swap_chain;
             swap_chain_create_info.render_pass = render_pass->get_render_pass();
-            swap_chain = std::make_unique<SwapChain>(
+            swap_chain = std::make_shared<SwapChain>(
                 swap_chain_create_info,
                 get_graphics_context(),
                 get_api_context()
@@ -129,7 +133,9 @@ namespace RenderThing {
 
         // create graphics pipeline
         {
-            pipeline = std::make_unique<GraphicsPipeline>(create_info.graphics_pipeline, get_api_context());
+            GraphicsPipelineCreateInfo pipeline_info = create_info.graphics_pipeline;
+            pipeline_info.render_pass = render_pass->get_render_pass();
+            pipeline = std::make_shared<GraphicsPipeline>(pipeline_info, get_api_context());
         }
         destruction_queue.QueueDelete([this] { pipeline.reset(); });
     }
@@ -155,19 +161,9 @@ namespace RenderThing {
         });
     }
 
-    void GraphicsManager::CreateSyncAndFrameData(const GraphicsManagerCreateInfo& create_info) {
-        VkSemaphoreCreateInfo semaphore_create_info = {
-            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
-        };
-
-        // create frame datas
-        {
-            VkFenceCreateInfo fence_create_info = {
-                .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
-                // we create signaled so the very first frame doesn't lock up lol
-                .flags = VK_FENCE_CREATE_SIGNALED_BIT
-            };
-
+    void GraphicsManager::CreateFrameDataAndCommandBuffers(const GraphicsManagerCreateInfo& create_info) {
+        frame_datas.resize(create_info.swap_chain.frame_flight_count);
+        for (size_t i = 0; i < frame_datas.size(); i++) {
             VkCommandBufferAllocateInfo alloc_info = {
                 .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
                 .commandPool = command_pool,
@@ -175,9 +171,26 @@ namespace RenderThing {
                 .commandBufferCount = 1
             };
 
-            frame_datas.resize(create_info.swap_chain.frame_flight_count);
+            if (vkAllocateCommandBuffers(device, &alloc_info, &frame_datas[i].command_buffer) != VK_SUCCESS) {
+                throw std::runtime_error("Failed to allocate command buffer for a frame!");
+            }
+        }
+    }
+
+    void GraphicsManager::CreateSyncObjects(const GraphicsManagerCreateInfo& create_info) {
+        VkSemaphoreCreateInfo semaphore_create_info = {
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
+        };
+
+        // frame fences & semaphores
+        {
+            VkFenceCreateInfo fence_create_info = {
+                .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+                // we create signaled so the very first frame doesn't lock up lol
+                .flags = VK_FENCE_CREATE_SIGNALED_BIT
+            };
+
             for (size_t i = 0; i < frame_datas.size(); i++) {
-                // ~~~ sync objects ~~~
                 VkResult semaphore_result = vkCreateSemaphore(
                     device,
                     &semaphore_create_info,
@@ -194,11 +207,6 @@ namespace RenderThing {
 
                 if (semaphore_result != VK_SUCCESS || fence_result != VK_SUCCESS) {
                     throw std::runtime_error("Failed to create sync objects for a frame!");
-                }
-
-                // ~~~ command buffer ~~~
-                if (vkAllocateCommandBuffers(device, &alloc_info, &frame_datas[i].command_buffer) != VK_SUCCESS) {
-                    throw std::runtime_error("Failed to allocate command buffer for a frame!");
                 }
             }
         }
@@ -433,7 +441,7 @@ namespace RenderThing {
             static_cast<uint32_t>(width),
             static_cast<uint32_t>(height)
         };
-        swap_chain = std::make_unique<SwapChain>(
+        swap_chain = std::make_shared<SwapChain>(
             swap_chain_create_info,
             get_graphics_context(),
             get_api_context()
@@ -590,8 +598,13 @@ namespace RenderThing {
     VkCommandBuffer GraphicsManager::get_command_buffer() const { return frame_datas[swap_chain->get_frame_index()].command_buffer; }
     VkClearValue GraphicsManager::get_clear_value() const { return clear_value; }
     VkCommandPool GraphicsManager::get_command_pool() const { return command_pool; }
+    VkDevice GraphicsManager::get_device() const { return api_cluster->get_device(); }
+    VkPhysicalDevice GraphicsManager::get_physical_device() const { return api_cluster->get_physical_device(); }
     VkQueue GraphicsManager::get_graphics_queue() const { return graphics_queue; }
     VkQueue GraphicsManager::get_present_queue() const { return present_queue; }
+    std::shared_ptr<RenderPass> GraphicsManager::get_render_pass() const { return render_pass; }
+    std::shared_ptr<GraphicsPipeline> GraphicsManager::get_graphics_pipeline() const { return pipeline; }
+    std::shared_ptr<SwapChain> GraphicsManager::get_swap_chain() const { return swap_chain; }
     VkExtent2D GraphicsManager::get_swapchain_extent() const { return swap_chain->get_extent(); }
     ApiContext GraphicsManager::get_api_context() const { return api_cluster->get_api_context(); }
     GraphicsContext GraphicsManager::get_graphics_context() const {

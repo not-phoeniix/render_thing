@@ -17,11 +17,12 @@ namespace RenderThing {
             .properties = create_info.properties,
         };
         buffer = std::make_unique<Buffer>(buffer_info, a_ctx);
+        buffer->Map();
 
         // ~~~ create pool ~~~
         VkDescriptorPoolSize pool_size = {
             .type = create_info.descriptor_type,
-            .descriptorCount = 1 // number of descriptors accessed in an array?
+            .descriptorCount = create_info.max_elements
         };
         DescriptorPoolCreateInfo pool_info = {
             .max_sets = create_info.max_elements,
@@ -59,9 +60,7 @@ namespace RenderThing {
             buffer_offset = 0;
         }
 
-        buffer->Map(buffer_offset, size);
-        buffer->CopyFromHost(data, size);
-        buffer->Unmap();
+        buffer->CopyFromHost(data, size, buffer_offset);
 
         // ~~~ write new offset info to descriptor ~~~
 

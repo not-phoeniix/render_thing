@@ -26,7 +26,7 @@ namespace RenderThing {
 
         // maps, copies, and unmaps memory automatically
         void CopyFromHostAuto(const void* data, size_t size);
-        void CopyFromHost(const void* data, size_t size);
+        void CopyFromHost(const void* data, size_t size, uint64_t offset = 0);
         void CopyFromBuffer(const Buffer& src, const GraphicsContext& g_ctx, const ApiContext& a_ctx);
         void Map();
         void Map(uint64_t offset, size_t size);
