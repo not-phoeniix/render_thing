@@ -8,6 +8,7 @@
 #include "swap_chain.h"
 #include "destruction_queue.h"
 #include "api_cluster.h"
+#include <functional>
 
 namespace rt {
     struct GraphicsManagerCreateInfo {
@@ -16,6 +17,11 @@ namespace rt {
         std::shared_ptr<ApiCluster> api_cluster;
         // optional render pass, will set up for you if you don't specify
         std::shared_ptr<RenderPass> main_render_pass;
+
+        // optional callback to call when the swapchain
+        //   is recreated upon window resizing
+        std::function<void(std::shared_ptr<SwapChain>)> on_swapchain_recreate_callback;
+
         const SwapChainCreateInfo& swap_chain;
         const GraphicsPipelineCreateInfo& graphics_pipeline;
     };
@@ -36,6 +42,7 @@ namespace rt {
         std::vector<VkSemaphore> render_finished_semaphores;
         std::vector<FrameData> frame_datas;
         bool framebuffer_resized;
+        std::function<void(std::shared_ptr<SwapChain>)> on_resize_callback;
 
         std::shared_ptr<RenderPass> render_pass;
         std::shared_ptr<GraphicsPipeline> pipeline;
