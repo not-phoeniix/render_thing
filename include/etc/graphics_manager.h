@@ -14,6 +14,8 @@ namespace rt {
         VkClearValue clear_value;
         GLFWwindow* window;
         std::shared_ptr<ApiCluster> api_cluster;
+        // optional render pass, will set up for you if you don't specify
+        std::shared_ptr<RenderPass> main_render_pass;
         const SwapChainCreateInfo& swap_chain;
         const GraphicsPipelineCreateInfo& graphics_pipeline;
     };

@@ -41,7 +41,9 @@ namespace rt {
 
     void GraphicsManager::CreateRenderObjects(const GraphicsManagerCreateInfo& create_info) {
         // create render pass
-        {
+        if (create_info.main_render_pass != nullptr) {
+            render_pass = create_info.main_render_pass;
+        } else {
             SwapChainSupportDetails details = Utils::query_swap_chain_support(
                 api_cluster->get_physical_device(),
                 api_cluster->get_surface()
