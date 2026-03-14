@@ -201,4 +201,7 @@ namespace rt {
     uint32_t SwapChain::get_frame_flight_count() const { return frame_flight_count; }
     VkSwapchainKHR SwapChain::get_swap_chain() const { return swap_chain; }
     VkFramebuffer SwapChain::get_current_framebuffer() const { return framebuffers[image_index]; }
+    const std::vector<VkImage>& SwapChain::get_images() const { return images; }
+    const std::vector<VkImageView>& SwapChain::get_image_views() const { return image_views; }
+    const std::vector<VkFramebuffer>& SwapChain::get_framebuffers() const { return framebuffers; }
 }

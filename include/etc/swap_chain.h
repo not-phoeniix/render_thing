@@ -51,5 +51,8 @@ namespace rt {
         uint32_t get_frame_flight_count() const;
         VkSwapchainKHR get_swap_chain() const;
         VkFramebuffer get_current_framebuffer() const;
+        const std::vector<VkImage>& get_images() const;
+        const std::vector<VkImageView>& get_image_views() const;
+        const std::vector<VkFramebuffer>& get_framebuffers() const;
     };
 }
