@@ -57,7 +57,8 @@ namespace rt {
         ~GraphicsManager();
 
         void Begin();
-        void EndAndPresent();
+        void End();
+        void Present();
 
         // getters/setters
 

@@ -346,7 +346,7 @@ namespace rt {
         vkCmdSetScissor(command_buffer, 0, 1, &scissor);
     }
 
-    void GraphicsManager::EndAndPresent() {
+    void GraphicsManager::End() {
         // ~~~ end recording ~~~
 
         uint32_t frame_index = swap_chain->get_frame_index();
@@ -383,8 +383,10 @@ namespace rt {
         if (vkQueueSubmit(graphics_queue, 1, &submit_info, in_flight_fence) != VK_SUCCESS) {
             throw std::runtime_error("Failed to submit draw command buffer to graphics queue!");
         }
+    }
 
-        // ~~~ presenting itself!!!!!!! ~~~
+    void GraphicsManager::Present() {
+        uint32_t image_index = swap_chain->get_image_index();
 
         VkSwapchainKHR sc = swap_chain->get_swap_chain();
         VkPresentInfoKHR present_info = {
