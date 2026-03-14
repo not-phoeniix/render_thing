@@ -13,11 +13,6 @@
 
 constexpr bool ENABLE_VALIDATION_LAYERS = true;
 
-// static void framebuffer_resize_callback(GLFWwindow* window, int width, int height) {
-//     auto manager = reinterpret_cast<rt::GraphicsManager*>(glfwGetWindowUserPointer(window));
-//     manager->mark_resized();
-// }
-
 namespace rt {
     GraphicsManager::GraphicsManager(const GraphicsManagerCreateInfo& create_info)
       : api_cluster(create_info.api_cluster),
@@ -26,9 +21,6 @@ namespace rt {
         on_resize_callback(create_info.on_swapchain_recreate_callback),
         clear_value(create_info.clear_value) {
         api_cluster->get_queues(&graphics_queue, &present_queue);
-
-        // glfwSetWindowUserPointer(create_info.window, this);
-        // glfwSetFramebufferSizeCallback(create_info.window, framebuffer_resize_callback);
 
         CreateCommandPool(create_info);
         CreateFrameDataAndCommandBuffers(create_info);
