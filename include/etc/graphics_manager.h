@@ -56,9 +56,10 @@ namespace rt {
         GraphicsManager(const GraphicsManagerCreateInfo& create_info);
         ~GraphicsManager();
 
-        void Begin();
-        void End();
-        void Present();
+        void ResetFrameAndBeginCB();
+        void CmdStartRenderPass();
+        void CmdEndRenderPass();
+        void EndCBAndPresentFrame();
 
         // getters/setters
 

@@ -262,7 +262,7 @@ namespace rt {
         );
     }
 
-    void GraphicsManager::Begin() {
+    void GraphicsManager::ResetFrameAndBeginCB() {
         // ~~~ resetting things from last frame ~~~
 
         uint32_t frame_index = swap_chain->get_frame_index();
@@ -304,6 +304,13 @@ namespace rt {
         if (vkBeginCommandBuffer(command_buffer, &begin_info) != VK_SUCCESS) {
             throw std::runtime_error("Failed to begin command buffer recording!");
         }
+    }
+
+    void GraphicsManager::CmdStartRenderPass() {
+        uint32_t frame_index = swap_chain->get_frame_index();
+        VkCommandBuffer command_buffer = frame_datas[frame_index].command_buffer;
+
+        // ~~~ begin render pass with clear values ~~~
 
         std::array<VkClearValue, 2> clear_values = {
             clear_value,
@@ -327,7 +334,7 @@ namespace rt {
 
         vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->get_pipeline());
 
-        // dynamic state things !!! :D
+        // ~~~ set up dynamic state stuff ~~~
 
         VkViewport viewport = {
             .x = 0.0f,
@@ -346,16 +353,18 @@ namespace rt {
         vkCmdSetScissor(command_buffer, 0, 1, &scissor);
     }
 
-    void GraphicsManager::End() {
-        // ~~~ end recording ~~~
+    void GraphicsManager::CmdEndRenderPass() {
+        uint32_t frame_index = swap_chain->get_frame_index();
+        VkCommandBuffer command_buffer = frame_datas[frame_index].command_buffer;
+        vkCmdEndRenderPass(command_buffer);
+    }
 
+    void GraphicsManager::EndCBAndPresentFrame() {
         uint32_t frame_index = swap_chain->get_frame_index();
         uint32_t image_index = swap_chain->get_image_index();
         VkCommandBuffer command_buffer = frame_datas[frame_index].command_buffer;
         VkSemaphore image_available_semaphore = frame_datas[frame_index].image_available_semaphore;
         VkFence in_flight_fence = frame_datas[frame_index].in_flight_fence;
-
-        vkCmdEndRenderPass(command_buffer);
 
         if (vkEndCommandBuffer(command_buffer) != VK_SUCCESS) {
             throw std::runtime_error("Failed to end command buffer recording!");
@@ -383,10 +392,8 @@ namespace rt {
         if (vkQueueSubmit(graphics_queue, 1, &submit_info, in_flight_fence) != VK_SUCCESS) {
             throw std::runtime_error("Failed to submit draw command buffer to graphics queue!");
         }
-    }
 
-    void GraphicsManager::Present() {
-        uint32_t image_index = swap_chain->get_image_index();
+        // ~~~ presenting !!! ~~~
 
         VkSwapchainKHR sc = swap_chain->get_swap_chain();
         VkPresentInfoKHR present_info = {
